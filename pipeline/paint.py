@@ -32,7 +32,9 @@ STYLE_RULES = (
 FIDELITY = (
     "Keep the exact camera, framing, scale and layout: every building, road, tree, field and water body "
     "stays exactly where it is, with the same shape and size, so neighbouring tiles stitch together. "
-    "Do not add, remove or move anything. Prefer empty streets: leave out cars and people. "
+    "Do not add, remove or move anything. Paint trees only where the render shows trees: never add "
+    "trees or shrubs to open lawns, plazas, parking lots or bare ground. "
+    "Prefer empty streets: leave out cars and people. "
     "No text, labels, borders or UI. Output one square image with exactly the framing of the input.")
 BOOTSTRAP_PROMPT = (
     "The attached image is a render of a real photogrammetric 3D model "
