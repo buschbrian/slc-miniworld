@@ -20,7 +20,10 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((acc, a, i, all) =>
 const mode = args.mode || 'render';
 const city = args.city || 'slc';
 const level = args.level || 'detail';
-const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.env.CHROME_PATH || {
+  win32: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+}[process.platform] || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const ANGLE = { darwin: 'metal', win32: 'd3d11' }[process.platform] || 'default';
 
 function loadEnv() {
   const f = path.join(ROOT, '.env');
@@ -116,7 +119,7 @@ server.listen(0, '127.0.0.1', () => {
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'render3d-'));
   const chrome = spawn(CHROME, [
     '--headless=new', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check',
-    '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-webgl',
+    `--use-angle=${ANGLE}`, '--enable-gpu', '--ignore-gpu-blocklist', '--enable-webgl',
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
     '--window-size=1200,1200', `http://127.0.0.1:${port}/`,
   ], { stdio: ['ignore', 'ignore', args.verbose ? 'inherit' : 'ignore'] });

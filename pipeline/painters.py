@@ -10,6 +10,7 @@ import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -62,7 +63,8 @@ class Codex(Painter):
 
     def paint(self, prompt, images):
         with tempfile.TemporaryDirectory() as td:
-            cmd = ["codex", "exec", self.prompt(prompt), "-m", self.model, "-c",
+            # Prompt goes on stdin: Windows runs codex through an npm .cmd shim, where cmd.exe mangles quotes.
+            cmd = [shutil.which("codex") or "codex", "exec", "-m", self.model, "-c",
                    f'model_reasoning_effort="{self.effort}"', "--skip-git-repo-check", "-s", "read-only", "--json"]
             for i, im in enumerate(images):
                 p = Path(td) / f"in{i}.png"
@@ -71,10 +73,10 @@ class Codex(Painter):
             t0 = time.time()
             try:
                 pr = subprocess.run(cmd, cwd=td, capture_output=True, text=True, timeout=self.timeout,
-                                    stdin=subprocess.DEVNULL)
+                                    input=self.prompt(prompt), encoding="utf-8", errors="replace")
             except subprocess.TimeoutExpired:
                 return None, {"error": "timeout"}
-            tid = re.search(r'"thread_id":"([^"]+)"', pr.stdout)
+            tid =re.search(r'"thread_id":"([^"]+)"', pr.stdout)
             info = {"secs": round(time.time() - t0, 1), "thread": tid.group(1) if tid else None}
             failures = []
             for line in pr.stdout.splitlines():
