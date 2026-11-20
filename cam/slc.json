@@ -11,7 +11,7 @@
   "levels": {
     "detail": {
       "ppm": 3.4,
-      "aoi": { "west": -111.935, "south": 40.728, "east": -111.820, "north": 40.795 },
+      "aoi": { "west": -111.935, "south": 40.690, "east": -111.820, "north": 40.795 },
       "zoom": 8
     },
     "overview": {
