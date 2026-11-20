@@ -51,6 +51,15 @@ frame on an M5 Max with 128 GB; this M4 has 16 GB.
 
 ## First batch
 
-- Rendered: detail rows −2…2 × columns −2…1 (20 squares), plus the overview level (in progress).
+- Rendered: detail rows −2…2 × columns −2…1 (20 squares), plus all 147 overview squares.
+- Overview QA: 8 squares came back with tile-shaped holes after a long render session. A
+  fresh-session re-render fixed 7, and rendering alone fixed the last. The new tile-error
+  logging recorded zero download errors, so cache pressure in long sessions is the likely
+  cause (unconfirmed). The QA flag catches every case. The remaining "possibly blurred"
+  flags are low-texture lake and salt-flat squares, not Google blurring.
+- Water: Google's lake surface sits on the curved Earth, ~17 m lower across a square 25 km
+  out than the anchor's tangent plane. Masks now correct for curvature before the
+  water-level test (3 m tolerance). Five overview squares are now at least 60% Great Salt
+  Lake; `r5_c-11` is at least 92% and gets procedural water.
 - Painted: 1 of 20 (r-2_c-2, the Capitol). The style reference is the bootstrap painting of
   the anchor square (`style/ref.png`).
