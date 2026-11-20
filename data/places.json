@@ -1,0 +1,138 @@
+[
+ {
+  "name": "Temple Square",
+  "lat": 40.770364,
+  "lon": -111.892534,
+  "level": "detail",
+  "blurb": "Ten-acre block around the Salt Lake Temple; the camera anchor.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Utah State Capitol",
+  "lat": 40.777396,
+  "lon": -111.888217,
+  "level": "detail",
+  "blurb": "Capitol Hill, above downtown to the north.",
+  "source": "nominatim"
+ },
+ {
+  "name": "City Creek Center",
+  "lat": 40.768585,
+  "lon": -111.890342,
+  "level": "detail",
+  "blurb": "Downtown shopping district with the creek running through it.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Delta Center",
+  "lat": 40.768327,
+  "lon": -111.901055,
+  "level": "detail",
+  "blurb": "Arena on the west side of downtown.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Salt Palace Convention Center",
+  "lat": 40.767243,
+  "lon": -111.895382,
+  "level": "detail",
+  "blurb": "Convention centre on West Temple.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Salt Lake City Public Library",
+  "lat": 40.759773,
+  "lon": -111.884699,
+  "level": "detail",
+  "blurb": "Main library on Library Square.",
+  "source": "nominatim"
+ },
+ {
+  "name": "City and County Building",
+  "lat": 40.759534,
+  "lon": -111.886797,
+  "level": "detail",
+  "blurb": "City hall on Washington Square.",
+  "source": "nominatim"
+ },
+ {
+  "name": "The Gateway",
+  "lat": 40.767835,
+  "lon": -111.903843,
+  "level": "detail",
+  "blurb": "Mixed-use district by the old Union Pacific depot.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Rio Grande Depot",
+  "lat": 40.762819,
+  "lon": -111.904607,
+  "level": "detail",
+  "blurb": "1910 railway depot.",
+  "source": "nominatim"
+ },
+ {
+  "name": "University of Utah",
+  "lat": 40.7636,
+  "lon": -111.853,
+  "level": "detail",
+  "blurb": "Presidents Circle on the east bench.",
+  "source": "fallback"
+ },
+ {
+  "name": "Rice-Eccles Stadium",
+  "lat": 40.759816,
+  "lon": -111.848913,
+  "level": "detail",
+  "blurb": "University stadium; 2002 Olympic ceremonies.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Liberty Park",
+  "lat": 40.745454,
+  "lon": -111.874031,
+  "level": "detail",
+  "blurb": "The city's large central park, with Tracy Aviary.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Trolley Square",
+  "lat": 40.757394,
+  "lon": -111.872533,
+  "level": "detail",
+  "blurb": "Former trolley barns turned shopping centre.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Ensign Peak",
+  "lat": 40.794374,
+  "lon": -111.890656,
+  "level": "detail",
+  "blurb": "Foothill summit north of the Capitol.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Memory Grove Park",
+  "lat": 40.777179,
+  "lon": -111.884844,
+  "level": "detail",
+  "blurb": "Park in lower City Creek Canyon.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Salt Lake City International Airport",
+  "lat": 40.790066,
+  "lon": -111.979899,
+  "level": "overview",
+  "blurb": "Airport on the flats west of the city.",
+  "source": "nominatim"
+ },
+ {
+  "name": "Great Salt Lake (Saltair)",
+  "lat": 40.747293,
+  "lon": -112.186155,
+  "level": "overview",
+  "blurb": "South shore of the Great Salt Lake.",
+  "source": "nominatim"
+ }
+]

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiny Salt Lake City</title>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<style>
+  :root { --bg: #181a1f; --panel: rgba(24, 26, 31, 0.92); --ink: #ece6da; --muted: #a59d8f; --accent: #e3a35b; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #map { position: absolute; inset: 0; background: var(--bg); }
+  .leaflet-container { background: var(--bg); font: inherit; }
+  .leaflet-tile { image-rendering: pixelated; }
+  #panel { position: absolute; top: 12px; left: 12px; z-index: 1000; width: 240px; max-height: calc(100% - 64px);
+    overflow: auto; background: var(--panel); border-radius: 10px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
+  #panel h1 { font-size: 15px; margin: 0 0 2px; letter-spacing: .02em; }
+  #panel p { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+  #places button { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--ink);
+    padding: 5px 6px; border-radius: 6px; font: inherit; cursor: pointer; }
+  #places button:hover, #places button:focus-visible { background: rgba(227,163,91,.18); outline: none; }
+  #places button.off { color: var(--muted); }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); color: var(--ink); }
+  .leaflet-popup-content b { color: var(--accent); }
+  .leaflet-control-attribution { background: rgba(24,26,31,.8) !important; color: var(--muted) !important; }
+  .leaflet-control-attribution a { color: var(--ink) !important; }
+  .pin { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid #1b1d22; box-shadow: 0 0 0 2px rgba(227,163,91,.35); }
+  @media (max-width: 600px) { #panel { width: auto; right: 12px; max-height: 38%; } }
+</style>
+</head>
+<body>
+<div id="map" role="application" aria-label="Painted map of Salt Lake City"></div>
+<aside id="panel">
+  <h1>Tiny Salt Lake City</h1>
+  <p id="status">Loading…</p>
+  <nav id="places" aria-label="Places"></nav>
+</aside>
+<script src="vendor/leaflet.js"></script>
+<script>
+(async () => {
+  const cfg = await (await fetch('config.json', { cache: 'no-store' })).json();
+  const layers = cfg.layers;
+  const detailKey = layers.detail ? 'detail' : (layers.detail_render ? 'detail_render' : null);
+  const overKey = layers.overview ? 'overview' : (layers.overview_render ? 'overview_render' : null);
+  const DZ = detailKey ? layers[detailKey].native_zoom : 8;
+  const map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: DZ + 1, zoomSnap: 0.5, attributionControl: true });
+  const toLL = (x, y, z) => map.unproject([x, y], z);
+  const boundsOf = (l) => L.latLngBounds(toLL(l.bounds_px[0], l.bounds_px[3], l.native_zoom), toLL(l.bounds_px[2], l.bounds_px[1], l.native_zoom));
+  const add = (l, opts) => L.tileLayer(l.path, { minNativeZoom: l.min_zoom, maxNativeZoom: l.native_zoom, bounds: boundsOf(l),
+    tileSize: 256, noWrap: true, keepBuffer: 4, attribution: cfg.attribution, ...opts }).addTo(map);
+  if (overKey) add(layers[overKey], { minZoom: 0, maxZoom: DZ + 1 });
+  if (detailKey) add(layers[detailKey], { minZoom: overKey ? layers[overKey].native_zoom : 0, maxZoom: DZ + 1 });
+  const main = layers[detailKey || overKey];
+  map.fitBounds(boundsOf(main));
+  document.getElementById('status').textContent =
+    Object.entries(layers).map(([k, l]) => `${k}: ${l.frames} squares`).join(' · ');
+
+  const nav = document.getElementById('places');
+  const inside = (p) => { const l = layers[detailKey || overKey]; const s = 2 ** (l.native_zoom - p.px[2]);
+    return p.px[0] * s >= l.bounds_px[0] && p.px[0] * s <= l.bounds_px[2] && p.px[1] * s >= l.bounds_px[1] && p.px[1] * s <= l.bounds_px[3]; };
+  const icon = L.divIcon({ className: '', html: '<div class="pin"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
+  for (const p of cfg.places) {
+    const ll = toLL(p.px[0], p.px[1], p.px[2]);
+    const covered = inside(p) || (overKey && p.level === 'overview');
+    const m = L.marker(ll, { icon, title: p.name, keyboard: true }).addTo(map)
+      .bindPopup(`<b>${p.name}</b><br>${p.blurb}`);
+    const b = document.createElement('button');
+    b.textContent = p.name;
+    if (!covered) { b.classList.add('off'); b.title = 'Not painted yet'; }
+    b.addEventListener('click', () => { map.flyTo(ll, p.level === 'overview' ? DZ - 3 : DZ - 1); m.openPopup(); });
+    nav.appendChild(b);
+  }
+})();
+</script>
+</body>
+</html>

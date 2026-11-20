@@ -1,0 +1,374 @@
+{
+ "h0": 1297.4,
+ "h0_method": "anchor patch 5th percentile",
+ "attributions": [
+  "Google",
+  "Google; Vexcel Imaging US, Inc."
+ ],
+ "points": [
+  {
+   "name": "anchor",
+   "loaded": true,
+   "hit_rel": 63.706834264793,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 25.4,
+   "h_p50": 31.2,
+   "h_p95": 76.0,
+   "relief_m": 50.6,
+   "status": "yes"
+  },
+  {
+   "name": "Temple Square",
+   "loaded": true,
+   "hit_rel": 20.650453762066025,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 24.3,
+   "h_p50": 29.8,
+   "h_p95": 62.8,
+   "relief_m": 38.5,
+   "status": "yes"
+  },
+  {
+   "name": "Utah State Capitol",
+   "loaded": true,
+   "hit_rel": 168.56345394667943,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 83.1,
+   "h_p50": 91.8,
+   "h_p95": 116.4,
+   "relief_m": 33.3,
+   "status": "yes"
+  },
+  {
+   "name": "City Creek Center",
+   "loaded": true,
+   "hit_rel": 49.99561814067541,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 25.8,
+   "h_p50": 42.2,
+   "h_p95": 111.9,
+   "relief_m": 86.1,
+   "status": "yes"
+  },
+  {
+   "name": "Delta Center",
+   "loaded": true,
+   "hit_rel": 46.791739259561524,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 7.6,
+   "h_p50": 13.4,
+   "h_p95": 46.2,
+   "relief_m": 38.6,
+   "status": "yes"
+  },
+  {
+   "name": "Salt Palace Convention Center",
+   "loaded": true,
+   "hit_rel": 32.389844172758046,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 16.4,
+   "h_p50": 31.2,
+   "h_p95": 41.9,
+   "relief_m": 25.5,
+   "status": "yes"
+  },
+  {
+   "name": "Salt Lake City Public Library",
+   "loaded": true,
+   "hit_rel": 30.714630224962345,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 8.2,
+   "h_p50": 10.3,
+   "h_p95": 30.6,
+   "relief_m": 22.4,
+   "status": "yes"
+  },
+  {
+   "name": "City and County Building",
+   "loaded": true,
+   "hit_rel": 70.05161563832897,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 6.9,
+   "h_p50": 9.4,
+   "h_p95": 30.2,
+   "relief_m": 23.3,
+   "status": "yes"
+  },
+  {
+   "name": "The Gateway",
+   "loaded": true,
+   "hit_rel": 28.710184235845347,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 3.7,
+   "h_p50": 12.5,
+   "h_p95": 38.1,
+   "relief_m": 34.4,
+   "status": "yes"
+  },
+  {
+   "name": "Rio Grande Depot",
+   "loaded": true,
+   "hit_rel": 31.065541649335138,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 0.1,
+   "h_p50": 2.1,
+   "h_p95": 20.1,
+   "relief_m": 20.0,
+   "status": "yes"
+  },
+  {
+   "name": "University of Utah",
+   "loaded": true,
+   "hit_rel": 124.9641102336019,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 106.6,
+   "h_p50": 116.6,
+   "h_p95": 138.0,
+   "relief_m": 31.4,
+   "status": "yes"
+  },
+  {
+   "name": "Rice-Eccles Stadium",
+   "loaded": true,
+   "hit_rel": 119.57005811778808,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 119.3,
+   "h_p50": 128.5,
+   "h_p95": 145.1,
+   "relief_m": 25.8,
+   "status": "yes"
+  },
+  {
+   "name": "Liberty Park",
+   "loaded": true,
+   "hit_rel": 9.201886940391287,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 7.5,
+   "h_p50": 10.1,
+   "h_p95": 30.3,
+   "relief_m": 22.8,
+   "status": "yes"
+  },
+  {
+   "name": "Trolley Square",
+   "loaded": true,
+   "hit_rel": 28.537437000822898,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 16.8,
+   "h_p50": 23.2,
+   "h_p95": 33.0,
+   "relief_m": 16.2,
+   "status": "yes"
+  },
+  {
+   "name": "Ensign Peak",
+   "loaded": true,
+   "hit_rel": 360.0023160111948,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 278.1,
+   "h_p50": 310.9,
+   "h_p95": 349.9,
+   "relief_m": 71.8,
+   "status": "yes"
+  },
+  {
+   "name": "Memory Grove Park",
+   "loaded": true,
+   "hit_rel": 65.25272837193548,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 64.5,
+   "h_p50": 88.8,
+   "h_p95": 114.3,
+   "relief_m": 49.8,
+   "status": "yes"
+  },
+  {
+   "name": "Salt Lake City International Airport",
+   "loaded": true,
+   "hit_rel": -8.132899911357251,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": -9.3,
+   "h_p50": -8.4,
+   "h_p95": 5.9,
+   "relief_m": 15.2,
+   "status": "yes"
+  },
+  {
+   "name": "Great Salt Lake (Saltair)",
+   "loaded": true,
+   "hit_rel": -56.37858058888663,
+   "attributions": [
+    "Google"
+   ],
+   "coverage": 1.0,
+   "h_p5": -59.2,
+   "h_p50": -57.5,
+   "h_p95": -53.6,
+   "relief_m": 5.6,
+   "status": "partial"
+  },
+  {
+   "name": "detail corner NW",
+   "loaded": true,
+   "hit_rel": -4.972344011496521,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": -5.8,
+   "h_p50": -4.9,
+   "h_p95": 6.0,
+   "relief_m": 11.8,
+   "status": "yes"
+  },
+  {
+   "name": "detail corner NE",
+   "loaded": true,
+   "hit_rel": 693.6374827795818,
+   "attributions": [
+    "Google"
+   ],
+   "coverage": 1.0,
+   "h_p5": 608.5,
+   "h_p50": 675.1,
+   "h_p95": 711.6,
+   "relief_m": 103.1,
+   "status": "yes"
+  },
+  {
+   "name": "detail corner SW",
+   "loaded": true,
+   "hit_rel": -1.894842088431222,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": -3.3,
+   "h_p50": -2.1,
+   "h_p95": 0.4,
+   "relief_m": 3.7,
+   "status": "partial"
+  },
+  {
+   "name": "detail corner SE",
+   "loaded": true,
+   "hit_rel": 132.92833922649572,
+   "attributions": [
+    "Google; Vexcel Imaging US, Inc."
+   ],
+   "coverage": 1.0,
+   "h_p5": 123.8,
+   "h_p50": 134.9,
+   "h_p95": 148.4,
+   "relief_m": 24.6,
+   "status": "yes"
+  },
+  {
+   "name": "overview corner NW",
+   "loaded": true,
+   "hit_rel": -72.19101677624033,
+   "attributions": [
+    "Google"
+   ],
+   "coverage": 1.0,
+   "h_p5": -72.8,
+   "h_p50": -72.2,
+   "h_p95": -71.6,
+   "relief_m": 1.2,
+   "status": "partial"
+  },
+  {
+   "name": "overview corner NE",
+   "loaded": true,
+   "hit_rel": 1206.186321072549,
+   "attributions": [
+    "Google"
+   ],
+   "coverage": 1.0,
+   "h_p5": 1110.7,
+   "h_p50": 1110.7,
+   "h_p95": 1110.7,
+   "relief_m": 0.0,
+   "status": "partial"
+  },
+  {
+   "name": "overview corner SW",
+   "loaded": true,
+   "hit_rel": 1292.4261963688737,
+   "attributions": [
+    "Google"
+   ],
+   "coverage": 1.0,
+   "h_p5": 1110.7,
+   "h_p50": 1110.7,
+   "h_p95": 1110.7,
+   "relief_m": 0.0,
+   "status": "partial"
+  },
+  {
+   "name": "overview corner SE",
+   "loaded": true,
+   "hit_rel": 1174.944263734025,
+   "attributions": [
+    "Google"
+   ],
+   "coverage": 1.0,
+   "h_p5": 1020.7,
+   "h_p50": 1110.7,
+   "h_p95": 1110.7,
+   "relief_m": 90.0,
+   "status": "yes"
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+  "city": "slc",
+  "anchor": { "name": "Salt Lake Temple", "lat": 40.770455, "lon": -111.891907 },
+  "ground_h_guess": 1272.0,
+  "heading_deg": 45.0,
+  "elevation_deg": 30.0,
+  "frame_px": 1024,
+  "step_px": 768,
+  "render_px": 2048,
+  "terrain_margin_m": 420,
+  "levels": {
+    "detail": {
+      "ppm": 3.4,
+      "aoi": { "west": -111.935, "south": 40.728, "east": -111.820, "north": 40.795 },
+      "zoom": 8
+    },
+    "overview": {
+      "ppm": 0.425,
+      "aoi": { "west": -112.200, "south": 40.660, "east": -111.780, "north": 40.840 },
+      "zoom": 5
+    }
+  },
+  "water_levels_ortho_m": { "great_salt_lake": 1278.5 },
+  "geoid_offset_m": -16.6
+}

@@ -1,0 +1,16 @@
+{
+  "name": "slc-miniworld",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "3d-tiles-renderer": "^0.5.4",
+    "leaflet": "^1.9.4",
+    "three": "^0.187.0"
+  }
+}
