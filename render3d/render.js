@@ -34,6 +34,12 @@ async function main() {
     tiles.lruCache.maxBytesSize = 1.5e9;
     tiles.lruCache.minBytesSize = 0.8e9;
     scene.add(tiles.group);
+    let loadErrors = 0;
+    tiles.addEventListener('load-error', (e) => {
+      loadErrors++;
+      if (loadErrors <= 5) log(`load-error ${e.url || ''} ${e.error && e.error.message || e.error || ''}`.slice(0, 300));
+    });
+    window.__loadErrors = () => loadErrors;
     tiles.setCamera(camera);
     tiles.setResolutionFromRenderer(camera, renderer);
   }
@@ -139,6 +145,7 @@ async function main() {
       const t0 = performance.now();
       const ok = await settle(job.timeout_ms);
       if (!ok) { await log(`TIMEOUT ${shot.name}`); continue; }
+      if (window.__loadErrors()) await log(`${shot.name}: ${window.__loadErrors()} tile load errors so far`);
       await post(`/save?kind=color&name=${shot.name}`, await renderColor());
       await post(`/save?kind=height&name=${shot.name}`, await renderHeight());
       const attributions = tiles.getAttributions().map((a) => a.value).filter((v) => typeof v === 'string');

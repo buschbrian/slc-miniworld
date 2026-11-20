@@ -5,7 +5,7 @@
 
 Masks: each pixel's height (from the height render) inverts the camera to a ground (e, n)
 position, which is tested against OSM water rasterised in a local ENU grid. A pixel counts as
-water only if it is also within 1.5 m of the frame's water surface (piers, boats and bridges stay)
+water only if it is also within 3 m of the frame's curvature-corrected water surface (piers, boats and bridges stay)
 and the render there is not bright (exposed salt/mud flats inside the lake polygon stay land).
 Fix: masked pixels the painter turned into non-water are repainted with the frame's water colour.
 """
@@ -20,6 +20,8 @@ from geo import ROOT, enu, frame_origin, load_cam, parse_name
 from prep_renders import load_height
 
 GRID_M = 0.5
+EARTH_R = 6371000.0
+WATER_TOL_M = 3.0  # Google mesh water surfaces are noisy by a few metres
 
 
 def load_water_enu(cam):
@@ -76,10 +78,13 @@ def frame_mask(cam, level, name, areas, lines):
     m = osm_mask(e, n, areas, lines)
     if m.sum() < 50:
         return np.zeros_like(m)
-    level_h = np.nanpercentile(hf[m], 30)  # water surface: the low, flat majority inside the polygon
+    # Heights are above the anchor's tangent plane; add the Earth-curvature drop so a lake
+    # surface tens of km away is level again before testing against the water surface.
+    hc = hf + (e ** 2 + n ** 2) / (2 * EARTH_R)
+    level_h = np.nanpercentile(hc[m], 30)  # water surface: the low, flat majority inside the polygon
     render = np.asarray(Image.open(ROOT / "renders" / level / f"{name}.jpg").convert("RGB"), np.float32)
     bright = render.mean(-1) > 175
-    return m & (hf <= level_h + 1.5) & ~bright
+    return m & (hc <= level_h + WATER_TOL_M) & ~bright
 
 
 def cmd_masks(cam, level):
