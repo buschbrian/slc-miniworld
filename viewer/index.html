@@ -20,6 +20,8 @@
     padding: 5px 6px; border-radius: 6px; font: inherit; cursor: pointer; }
   #places button:hover, #places button:focus-visible { background: rgba(227,163,91,.18); outline: none; }
   #places button.off { color: var(--muted); }
+  #panel p.help { margin: 10px 0 0; }
+  #panel p.help a { color: var(--accent); }
   .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); color: var(--ink); }
   .leaflet-popup-content b { color: var(--accent); }
   .leaflet-control-attribution { background: rgba(24,26,31,.8) !important; color: var(--muted) !important; }
@@ -34,6 +36,7 @@
   <h1>Tiny Salt Lake City</h1>
   <p id="status">Loading…</p>
   <nav id="places" aria-label="Places"></nav>
+  <p class="help"><a href="https://github.com/buschbrian/slc-miniworld/blob/main/CONTRIBUTING.md">Help paint the rest of the city</a></p>
 </aside>
 <script src="vendor/leaflet.js"></script>
 <script>

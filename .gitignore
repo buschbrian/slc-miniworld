@@ -4,14 +4,15 @@ node_modules/
 __pycache__/
 .DS_Store
 # Google-derived imagery and outputs stay local (Map Tiles API terms; size)
-renders/
-heights/
-masks/
-painted/
-stitched/
+/renders/
+/heights/
+/masks/
+/painted/
+/stitched/
 /tiles/
-style/
+/style/
 viewer/config.json
 deploy/site/
 deploy/.synced.json
 deploy/.wrangler/
+/submissions/
