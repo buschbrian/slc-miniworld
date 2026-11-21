@@ -1,6 +1,6 @@
 # Helping paint Tiny Salt Lake City
 
-The goal is all of Salt Lake County: 21,264 squares, from the Oquirrhs to the Wasatch crest and
+The goal is all of Salt Lake County: 20,838 squares, from the Oquirrhs to the Wasatch crest and
 from the airport to Draper. The map is painted one 1,024 px square at a time, and each square
 costs one AI image generation. A ChatGPT plan allows roughly 190 of those a day, which is more
 than 100 days for one person, so the map grows faster when more people paint.

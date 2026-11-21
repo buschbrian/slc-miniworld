@@ -15,7 +15,7 @@ Painting is limited by AI image quota, so blocks painted by other people speed i
 | Anchor | Salt Lake Temple, 40.770455, −111.891907; ground height from the probe (`cam/slc_probe.json`) |
 | Camera | orthographic, heading 45° (looking northeast), 30° down (2:1), no perspective |
 | Squares | 1,024 px painted, 768 px step (256 px overlap), rendered at 2,048 px then downscaled |
-| Detail | 3.4 px/m, all of Salt Lake County: 21,264 squares, about 0.1 km² of new ground each. The grid grew from downtown to Salt Lake City and Millcreek (AOI −112.105…−111.735, 40.655…40.855), then by the county's own frames; existing squares always keep their names |
+| Detail | 3.4 px/m, all of Salt Lake County: 21,264 squares in the list, 20,838 of them inside the county boundary, about 0.1 km² of new ground each. The grid grew from downtown to Salt Lake City and Millcreek (AOI −112.105…−111.735, 40.655…40.855), then by the county's own frames; existing squares always keep their names |
 | Overview | 0.425 px/m (exactly 1/8), out to the Great Salt Lake shore at Saltair. 147 squares |
 
 Squares are `r<row>_c<col>`. Row 0, column 0 is centred on the anchor, and rows grow down the
