@@ -9,7 +9,7 @@ heights/
 masks/
 painted/
 stitched/
-tiles/
+/tiles/
 style/
 viewer/config.json
 deploy/site/
