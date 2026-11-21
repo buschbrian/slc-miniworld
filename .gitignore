@@ -12,3 +12,6 @@ stitched/
 tiles/
 style/
 viewer/config.json
+deploy/site/
+deploy/.synced.json
+deploy/.wrangler/
