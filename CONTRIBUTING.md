@@ -28,7 +28,8 @@ Google Maps Platform key with the **Map Tiles API** enabled as `GOOGLE_MAPS_API_
   probe and `plan_grid` steps in the README.
 - Paint only the squares `contrib.py` gives you: squares inside Salt Lake County that are not on
   the map yet. It leaves out the squares the maintainer's own run paints (the Liberty Park to
-  Sugar House corridor, the East Bench east of 1300 East, and Millcreek).
+  Sugar House corridor and the East Bench east of 1300 East). Check the open claim issues too:
+  a block someone has claimed is theirs.
 - Mountain blocks are welcome. Expect more trees and rock than buildings there; the same prompt
   and style reference apply.
 - One block per claim. If you stop, say so on the issue so someone else can take it. Claims
