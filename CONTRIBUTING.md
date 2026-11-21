@@ -99,4 +99,6 @@ map and appear on the live site at the next deploy. The issue is closed with a l
 
 Bug reports and fixes to the pipeline or the viewer are welcome as ordinary issues and pull
 requests. Please keep generated images (renders, paintings, tiles) out of pull requests; they
-are gitignored on purpose.
+are gitignored on purpose. If you work with a coding agent, point it at
+[AGENTS.md](AGENTS.md); it holds the rules that keep the grid and the look consistent, and
+`python scripts/live_config.py` runs the web page locally against the live tiles.
