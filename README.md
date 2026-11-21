@@ -15,12 +15,18 @@ Painting is limited by AI image quota, so blocks painted by other people speed i
 | Anchor | Salt Lake Temple, 40.770455, −111.891907; ground height from the probe (`cam/slc_probe.json`) |
 | Camera | orthographic, heading 45° (looking northeast), 30° down (2:1), no perspective |
 | Squares | 1,024 px painted, 768 px step (256 px overlap), rendered at 2,048 px then downscaled |
-| Detail | 3.4 px/m: −112.105…−111.735, 40.655…40.855 — Salt Lake City and Millcreek. 7,317 squares, about 0.1 km² of new ground each. The area was widened from the first downtown grid; existing squares kept their names |
+| Detail | 3.4 px/m, all of Salt Lake County: 21,264 squares, about 0.1 km² of new ground each. The grid grew from downtown to Salt Lake City and Millcreek (AOI −112.105…−111.735, 40.655…40.855), then by the county's own frames; existing squares always keep their names |
 | Overview | 0.425 px/m (exactly 1/8), out to the Great Salt Lake shore at Saltair. 147 squares |
 
 Squares are `r<row>_c<col>`. Row 0, column 0 is centred on the anchor, and rows grow down the
 screen. All scripts project through `pipeline/geo.py`. `pipeline/selftest.py` checks that the
 browser camera and the Python projection agree (the last check passed with errors under 0.4 px).
+
+The county squares come from `pipeline/area_frames.py`. It samples the UGRC county boundary
+(`data/county_bounds.geojson`) about every 60 m and projects each point at its USGS 3DEP ground
+height, because ground 2,000 m up the Wasatch lands about 8 rows higher on screen than valley
+ground. `plan_grid.py --extend "Salt Lake County"` then appends those frames to the frozen list.
+`data/frames_by_area.json` holds the per-area lists.
 
 ## Setup
 
@@ -121,5 +127,7 @@ Bundled data keeps its own terms:
 - Leaflet (`viewer/vendor/`), BSD 2-Clause, © Vladimir Agafonkin and contributors.
 - `data/osm_water.json` and the place list are derived from OpenStreetMap, © OpenStreetMap
   contributors, available under the Open Database License (ODbL).
-- `data/city_bounds.geojson` comes from the Utah Geospatial Resource Center (UGRC) municipal
-  boundaries.
+- `data/city_bounds.geojson` and `data/county_bounds.geojson` come from the Utah Geospatial
+  Resource Center (UGRC) municipal and county boundaries.
+- The county frame list used USGS 3D Elevation Program (3DEP) heights, which are public domain.
+  The DEM itself is not in the repo.
