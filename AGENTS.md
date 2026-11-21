@@ -20,11 +20,12 @@ covers painting a block. This file is for agents changing the code, the docs or 
   reference and submissions are gitignored by root-anchored rules (`/painted/`, not
   `painted/`). Give any new output folder an anchored rule too: an unanchored `tiles/` once
   hid `deploy/functions/tiles/` from git.
+- **Raw renders stay on the machine that rendered them.** Google's Maps Platform terms forbid
+  storing, resharing or rehosting their content, so renders and heights are never uploaded,
+  served or attached anywhere. Each person renders with their own Google key.
 - **Keys stay in `.env`.** Read them with `painters.env_value`; keep them out of logs and output.
-- **The maintainer deploys and renders.** Pull requests change code; `deploy/build_site.py`,
-  `deploy/sync_tiles.ps1` and `wrangler pages deploy` run on the maintainer's machine after merge.
-  `pipeline/render_ahead.py` keeps the nearest open blocks rendered, and the site shares those
-  renders (`/renders/`, listed in `renders.json`) so contributors paint without a Google key.
+- **The maintainer deploys.** Pull requests change code; `deploy/sync_tiles.ps1` and
+  `wrangler pages deploy` run on the maintainer's machine after merge.
 - **`data/frames_by_area.json` decides membership**: which squares are in the county, the
   cities, and `reserved` (the maintainer's own Codex run, tracked in the pinned claim issue).
 
