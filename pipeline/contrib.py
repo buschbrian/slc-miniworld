@@ -92,8 +92,11 @@ def run(cmd):
 
 def cmd_open(a):
     ar, live, shared = areas(), live_painted(), live_list("renders.json")
+    pool = paintable(ar) - live
+    if a.area:
+        pool &= set(ar[a.area])
     blocks = {}
-    for n in paintable(ar) - live:
+    for n in pool:
         blocks.setdefault(block_of(n), []).append(n)
 
     def dist(b):
@@ -235,6 +238,7 @@ def main():
     p = sub.add_parser("open")
     p.add_argument("--limit", type=int, default=25)
     p.add_argument("--all", action="store_true", help="also list blocks still waiting for renders")
+    p.add_argument("--area", help="only squares in this area of data/frames_by_area.json, e.g. Millcreek")
     for name in ("show", "prepare", "paint", "pack"):
         p = sub.add_parser(name)
         p.add_argument("block", help="block id such as b2_-3")
