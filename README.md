@@ -1,9 +1,12 @@
 # Tiny Salt Lake City
 
-A painted, isometric-style tile map of Salt Lake City, following the Mini World pipeline
-(marceloeduardo.com/tiny-city-workflow.html). Google Photorealistic 3D Tiles are rendered with one
-fixed orthographic camera. Codex then repaints each 1,024 px square, and the painted squares are
-stitched into a Leaflet tile pyramid.
+A painted, isometric-style tile map of Salt Lake City, following Marcelo Eduardo's
+[Mini World workflow](https://marceloeduardo.com/tiny-city-workflow.html). Google Photorealistic 3D
+Tiles are rendered with one fixed orthographic camera. Codex then repaints each 1,024 px square, and
+the painted squares are stitched into a Leaflet tile pyramid.
+
+**Live map:** <https://slc-miniworld.pages.dev> · **Help paint it:** see [CONTRIBUTING.md](CONTRIBUTING.md).
+Painting is limited by AI image quota, so blocks painted by other people speed it up.
 
 ## Camera and grid (frozen once painting starts)
 
@@ -12,7 +15,7 @@ stitched into a Leaflet tile pyramid.
 | Anchor | Salt Lake Temple, 40.770455, −111.891907; ground height from the probe (`cam/slc_probe.json`) |
 | Camera | orthographic, heading 45° (looking northeast), 30° down (2:1), no perspective |
 | Squares | 1,024 px painted, 768 px step (256 px overlap), rendered at 2,048 px then downscaled |
-| Detail | 3.4 px/m: −111.935…−111.820, 40.728…40.795 — downtown, Temple Square, Capitol, Ensign Peak, City Creek, U of U, Liberty Park, east-bench foothills. 869 squares, about 0.1 km² of new ground each |
+| Detail | 3.4 px/m: −112.105…−111.735, 40.655…40.855 — Salt Lake City and Millcreek. 7,317 squares, about 0.1 km² of new ground each. The area was widened from the first downtown grid; existing squares kept their names |
 | Overview | 0.425 px/m (exactly 1/8), out to the Great Salt Lake shore at Saltair. 147 squares |
 
 Squares are `r<row>_c<col>`. Row 0, column 0 is centred on the anchor, and rows grow down the
@@ -23,7 +26,7 @@ browser camera and the Python projection agree (the last check passed with error
 
 ```bash
 npm install                         # three, 3d-tiles-renderer, leaflet (no browser download)
-uv venv .venv && uv pip install --python .venv/bin/python numpy pillow
+uv venv .venv && uv pip install --python .venv numpy pillow
 cp .env.example .env                # add GOOGLE_MAPS_API_KEY (Map Tiles API enabled)
 ```
 
@@ -33,7 +36,9 @@ generation through `codex exec`, with `gpt-6-luna` at low effort driving the too
 
 ## Run
 
-Use the virtualenv Python (`.venv/bin/python`) for every `python` step.
+Use the virtualenv Python for every `python` step: `.venv/bin/python` on macOS and Linux,
+`.venv\Scripts\python.exe` on Windows. Contributors start from the frozen grid and use
+`pipeline/contrib.py` instead (see CONTRIBUTING.md).
 
 ```bash
 python pipeline/places.py --geocode          # landmarks (Nominatim), optional refresh
@@ -106,6 +111,15 @@ Map Tiles API quota page before a full run.
 ## Terms and attribution
 
 Google's Map Tiles API terms restrict caching and storing Google content and making derivative
-works from it. Renders, heights and painted output are gitignored and stay on this machine.
-Read the current Map Tiles API policies before publishing anything. The viewer always shows
-the Google and OpenStreetMap attribution.
+works from it. Renders, heights and painted output are gitignored and never committed; the
+painted map is served from the live site. Read the current Map Tiles API policies before
+publishing anything. The viewer always shows the Google and OpenStreetMap attribution.
+
+The code is MIT licensed (see LICENSE). That covers the scripts and viewer only, not imagery.
+Bundled data keeps its own terms:
+
+- Leaflet (`viewer/vendor/`), BSD 2-Clause, © Vladimir Agafonkin and contributors.
+- `data/osm_water.json` and the place list are derived from OpenStreetMap, © OpenStreetMap
+  contributors, available under the Open Database License (ODbL).
+- `data/city_bounds.geojson` comes from the Utah Geospatial Resource Center (UGRC) municipal
+  boundaries.

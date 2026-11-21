@@ -1,0 +1,28 @@
+name: Claim a block
+description: Take a 5 x 5 block of squares to paint (see CONTRIBUTING.md)
+title: "Claim: "
+labels: ["claim"]
+body:
+  - type: input
+    id: block
+    attributes:
+      label: Block id
+      description: From `python pipeline/contrib.py open`, for example b2_-3
+    validations:
+      required: true
+  - type: checkboxes
+    id: ready
+    attributes:
+      label: Ready to paint
+      options:
+        - label: I have a Google Maps key with the Map Tiles API enabled
+          required: true
+        - label: I have the Codex CLI signed in with a ChatGPT plan that includes image generation
+          required: true
+        - label: I will use the repo's prompts, style reference and frozen grid unchanged
+          required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything the maintainer should know (timing, partial block, questions)

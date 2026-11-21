@@ -20,6 +20,8 @@
     padding: 5px 6px; border-radius: 6px; font: inherit; cursor: pointer; }
   #places button:hover, #places button:focus-visible { background: rgba(227,163,91,.18); outline: none; }
   #places button.off { color: var(--muted); }
+  #panel p.help { margin: 10px 0 0; }
+  #panel p.help a { color: var(--accent); }
   .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); color: var(--ink); }
   .leaflet-popup-content b { color: var(--accent); }
   .leaflet-control-attribution { background: rgba(24,26,31,.8) !important; color: var(--muted) !important; }
@@ -34,6 +36,7 @@
   <h1>Tiny Salt Lake City</h1>
   <p id="status">Loading…</p>
   <nav id="places" aria-label="Places"></nav>
+  <p class="help"><a href="https://github.com/buschbrian/slc-miniworld/blob/main/CONTRIBUTING.md">Help paint the rest of the city</a></p>
 </aside>
 <script src="vendor/leaflet.js"></script>
 <script>
@@ -43,15 +46,43 @@
   const detailKey = layers.detail ? 'detail' : (layers.detail_render ? 'detail_render' : null);
   const overKey = layers.overview ? 'overview' : (layers.overview_render ? 'overview_render' : null);
   const DZ = detailKey ? layers[detailKey].native_zoom : 8;
-  const map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: DZ + 1, zoomSnap: 0.5, attributionControl: true });
+  const map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: DZ + 1, zoomSnap: 0.5, attributionControl: true,
+    zoomControl: false });
+  L.control.zoom({ position: window.innerWidth > 600 ? 'topright' : 'bottomright' }).addTo(map);
   const toLL = (x, y, z) => map.unproject([x, y], z);
   const boundsOf = (l) => L.latLngBounds(toLL(l.bounds_px[0], l.bounds_px[3], l.native_zoom), toLL(l.bounds_px[2], l.bounds_px[1], l.native_zoom));
   const add = (l, opts) => L.tileLayer(l.path, { minNativeZoom: l.min_zoom, maxNativeZoom: l.native_zoom, bounds: boundsOf(l),
     tileSize: 256, noWrap: true, keepBuffer: 4, attribution: cfg.attribution, ...opts }).addTo(map);
-  if (overKey) add(layers[overKey], { minZoom: 0, maxZoom: DZ + 1 });
-  if (detailKey) add(layers[detailKey], { minZoom: overKey ? layers[overKey].native_zoom : 0, maxZoom: DZ + 1 });
+  // Detail tiles fill unpainted areas with stitch.py's BG (24, 26, 31); key it out so the overview shows through.
+  const Keyed = L.TileLayer.extend({
+    createTile(coords, done) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 256;
+      const img = new Image();
+      img.onload = () => {
+        const g = c.getContext('2d', { willReadFrequently: true });
+        g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, 256, 256), a = d.data;
+        for (let i = 0; i < a.length; i += 4)
+          if (Math.abs(a[i] - 24) + Math.abs(a[i + 1] - 26) + Math.abs(a[i + 2] - 31) < 18) a[i + 3] = 0;
+        g.putImageData(d, 0, 0);
+        done(null, c);
+      };
+      img.onerror = (e) => done(e, c);
+      img.src = this.getTileUrl(coords);
+      return c;
+    },
+  });
+  if (overKey) add(layers[overKey], { minZoom: 0, maxZoom: DZ + 1, zIndex: 1 });
+  if (detailKey) {
+    const l = layers[detailKey];
+    const opts = { minNativeZoom: l.min_zoom, maxNativeZoom: l.native_zoom, bounds: boundsOf(l), tileSize: 256,
+      noWrap: true, keepBuffer: 4, attribution: cfg.attribution, minZoom: 0, maxZoom: DZ + 1, zIndex: 2 };
+    (overKey ? new Keyed(l.path, opts) : L.tileLayer(l.path, opts)).addTo(map);
+  }
   const main = layers[detailKey || overKey];
-  map.fitBounds(boundsOf(main));
+  const panelW = window.innerWidth > 600 ? document.getElementById('panel').offsetWidth + 24 : 0;
+  map.fitBounds(boundsOf(main), { paddingTopLeft: [panelW, 12], paddingBottomRight: [12, 12] });
   document.getElementById('status').textContent =
     Object.entries(layers).map(([k, l]) => `${k}: ${l.frames} squares`).join(' · ');
 
@@ -62,12 +93,15 @@
   for (const p of cfg.places) {
     const ll = toLL(p.px[0], p.px[1], p.px[2]);
     const covered = inside(p) || (overKey && p.level === 'overview');
-    const m = L.marker(ll, { icon, title: p.name, keyboard: true }).addTo(map)
-      .bindPopup(`<b>${p.name}</b><br>${p.blurb}`);
     const b = document.createElement('button');
     b.textContent = p.name;
-    if (!covered) { b.classList.add('off'); b.title = 'Not painted yet'; }
-    b.addEventListener('click', () => { map.flyTo(ll, p.level === 'overview' ? DZ - 3 : DZ - 1); m.openPopup(); });
+    if (covered) {
+      const m = L.marker(ll, { icon, title: p.name, keyboard: true }).addTo(map)
+        .bindPopup(`<b>${p.name}</b><br>${p.blurb}`);
+      b.addEventListener('click', () => { map.flyTo(ll, p.level === 'overview' ? DZ - 3 : DZ - 1); m.openPopup(); });
+    } else {
+      b.classList.add('off'); b.disabled = true; b.title = 'Not painted yet';
+    }
     nav.appendChild(b);
   }
 })();
