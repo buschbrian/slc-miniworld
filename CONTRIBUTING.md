@@ -1,6 +1,6 @@
 # Helping paint Tiny Salt Lake City
 
-The goal is all of Salt Lake County: 21,264 squares, from the Oquirrhs to the Wasatch crest and
+The goal is all of Salt Lake County: 20,838 squares, from the Oquirrhs to the Wasatch crest and
 from the airport to Draper. The map is painted one 1,024 px square at a time, and each square
 costs one AI image generation. A ChatGPT plan allows roughly 190 of those a day, which is more
 than 100 days for one person, so the map grows faster when more people paint.
@@ -101,5 +101,6 @@ map and appear on the live site at the next deploy. The issue is closed with a l
 Bug reports and fixes to the pipeline or the viewer are welcome as ordinary issues and pull
 requests. Please keep generated images (renders, paintings, tiles) out of pull requests; they
 are gitignored on purpose. If you work with a coding agent, point it at
-[AGENTS.md](AGENTS.md); it holds the rules that keep the grid and the look consistent, and
-`python scripts/live_config.py` runs the web page locally against the live tiles.
+[AGENTS.md](AGENTS.md): it has a step-by-step runbook for painting a block and the rules that
+keep the grid and the look consistent. `python scripts/live_config.py` runs the web page
+locally against the live tiles.

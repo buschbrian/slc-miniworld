@@ -5,9 +5,22 @@ A painted, isometric-style tile map of Salt Lake City, following Marcelo Eduardo
 Tiles are rendered with one fixed orthographic camera. Codex then repaints each 1,024 px square, and
 the painted squares are stitched into a Leaflet tile pyramid.
 
-**Live map:** <https://slc-miniworld.pages.dev> · **Help paint it:** see [CONTRIBUTING.md](CONTRIBUTING.md).
-Painting is limited by AI image quota, so blocks painted by other people speed it up.
-Coding agents working on the pipeline or the web page start with [AGENTS.md](AGENTS.md).
+**Live map:** <https://slc-miniworld.pages.dev>
+
+## How to help
+
+The goal is all of Salt Lake County, 20,838 squares. Each square costs one AI image generation,
+and one ChatGPT plan allows about 190 a day, so the map grows faster with more people painting.
+
+- **Paint a block.** Claim 25 squares in an issue, render and paint them on your machine with
+  your own Google Maps key and ChatGPT plan, and attach the result. Steps: [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Paint with a coding agent.** Point Codex, Claude Code or another agent at [AGENTS.md](AGENTS.md)
+  and ask it to help you paint a block. It does the commands and checks; you claim the block,
+  hold the keys and attach the zip.
+- **Improve the pipeline or the web page.** Issues and pull requests are welcome. AGENTS.md has the
+  rules that keep the grid and the look consistent.
+- **Report a problem on the map**, like a road painted as water or a visible seam, in an issue
+  with a screenshot and roughly where it is.
 
 ## Camera and grid (frozen once painting starts)
 
@@ -16,7 +29,7 @@ Coding agents working on the pipeline or the web page start with [AGENTS.md](AGE
 | Anchor | Salt Lake Temple, 40.770455, −111.891907; ground height from the probe (`cam/slc_probe.json`) |
 | Camera | orthographic, heading 45° (looking northeast), 30° down (2:1), no perspective |
 | Squares | 1,024 px painted, 768 px step (256 px overlap), rendered at 2,048 px then downscaled |
-| Detail | 3.4 px/m, all of Salt Lake County: 21,264 squares, about 0.1 km² of new ground each. The grid grew from downtown to Salt Lake City and Millcreek (AOI −112.105…−111.735, 40.655…40.855), then by the county's own frames; existing squares always keep their names |
+| Detail | 3.4 px/m, all of Salt Lake County: 21,264 squares in the list, 20,838 of them inside the county boundary, about 0.1 km² of new ground each. The grid grew from downtown to Salt Lake City and Millcreek (AOI −112.105…−111.735, 40.655…40.855), then by the county's own frames; existing squares always keep their names |
 | Overview | 0.425 px/m (exactly 1/8), out to the Great Salt Lake shore at Saltair. 147 squares |
 
 Squares are `r<row>_c<col>`. Row 0, column 0 is centred on the anchor, and rows grow down the
