@@ -7,6 +7,7 @@ the painted squares are stitched into a Leaflet tile pyramid.
 
 **Live map:** <https://slc-miniworld.pages.dev> · **Help paint it:** see [CONTRIBUTING.md](CONTRIBUTING.md).
 Painting is limited by AI image quota, so blocks painted by other people speed it up.
+Coding agents working on the pipeline or the web page start with [AGENTS.md](AGENTS.md).
 
 ## Camera and grid (frozen once painting starts)
 

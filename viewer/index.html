@@ -69,6 +69,7 @@
         done(null, c);
       };
       img.onerror = (e) => done(e, c);
+      img.crossOrigin = 'anonymous';  // live tiles from another origin (scripts/live_config.py) stay readable
       img.src = this.getTileUrl(coords);
       return c;
     },
