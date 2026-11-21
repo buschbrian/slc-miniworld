@@ -1,7 +1,9 @@
 # Helping paint Tiny Salt Lake City
 
-The map is painted one 1,024 px square at a time, and each square costs one AI image generation.
-A ChatGPT plan allows roughly 190 of those a day, so the map grows faster when more people paint.
+The goal is all of Salt Lake County: 21,264 squares, from the Oquirrhs to the Wasatch crest and
+from the airport to Draper. The map is painted one 1,024 px square at a time, and each square
+costs one AI image generation. A ChatGPT plan allows roughly 190 of those a day, which is more
+than 100 days for one person, so the map grows faster when more people paint.
 You can take a block of up to 25 squares, paint it on your own machine with your own accounts,
 and send the result back. It goes onto the [live map](https://slc-miniworld.pages.dev) after a
 check, and your GitHub name goes into the credits.
@@ -21,9 +23,11 @@ check, and your GitHub name goes into the credits.
 - Paint with the Codex painter and the prompts in `pipeline/paint.py`, against the shared style
   reference. Do not edit the prompts, `cam/` or the shot lists. The grid is frozen, so skip the
   probe and `plan_grid` steps in the README.
-- Paint only the squares `contrib.py` gives you. It leaves out squares already on the map and
-  the squares the maintainer's own run paints (the Liberty Park to Sugar House corridor, the
-  East Bench east of 1300 East, and Millcreek).
+- Paint only the squares `contrib.py` gives you: squares inside Salt Lake County that are not on
+  the map yet. It leaves out the squares the maintainer's own run paints (the Liberty Park to
+  Sugar House corridor, the East Bench east of 1300 East, and Millcreek).
+- Mountain blocks are welcome. Expect more trees and rock than buildings there; the same prompt
+  and style reference apply.
 - One block per claim. If you stop, say so on the issue so someone else can take it. Claims
   with no activity for 7 days are released.
 

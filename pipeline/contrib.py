@@ -69,8 +69,14 @@ def block_frames(block, all_names):
     return [n for n in all_names if parse_name(n)[0] in rows and parse_name(n)[1] in cols]
 
 
-def todo(block, all_names, reserved, live):
-    return [n for n in block_frames(block, all_names) if n not in reserved and n not in live]
+def paintable(ar):
+    """Squares open to contributors: Salt Lake County (and the city lists) minus the reserved run."""
+    return (set(ar["Salt Lake County"]) | set(ar["Salt Lake City"])) - set(ar["reserved"])
+
+
+def todo(block, all_names, ar, live):
+    ok = paintable(ar)
+    return [n for n in block_frames(block, all_names) if n in ok and n not in live]
 
 
 def run(cmd):
@@ -80,23 +86,22 @@ def run(cmd):
 
 def cmd_open(a):
     names, ar, live = shots(), areas(), live_painted()
-    reserved, slc = set(ar["reserved"]), set(ar["Salt Lake City"])
     blocks = {}
-    for n in slc - reserved - live:
+    for n in paintable(ar) - live:
         blocks.setdefault(block_of(n), []).append(n)
     def dist(b):
         br, bc = (int(v) for v in b[1:].split("_"))
         return (br * B + 2) ** 2 + (bc * B + 2) ** 2
-    print(f"{len(blocks)} blocks with open Salt Lake City squares (nearest the temple first):")
+    print(f"{len(blocks)} blocks with open Salt Lake County squares (nearest the temple first):")
     for b in sorted(blocks, key=dist)[: a.limit]:
-        print(f"  {b:10s} {len(todo(b, names, reserved, live)):2d} squares to paint")
+        print(f"  {b:10s} {len(todo(b, names, ar, live)):2d} squares to paint")
 
 
 def cmd_show(a):
     names, ar, live = shots(), areas(), live_painted()
     reserved = set(ar["reserved"])
     fr = block_frames(a.block, names)
-    left = todo(a.block, names, reserved, live)
+    left = todo(a.block, names, ar, live)
     rendered = [n for n in left if (RENDERS / f"{n}.jpg").exists()]
     painted = [n for n in left if (PAINTED / f"{n}.png").exists()]
     print(f"{a.block}: {len(fr)} squares in the grid, {sum(n in live for n in fr)} on the live site, "
@@ -108,8 +113,7 @@ def cmd_show(a):
 
 def cmd_prepare(a):
     names, ar, live = shots(), areas(), live_painted()
-    reserved = set(ar["reserved"])
-    left = todo(a.block, names, reserved, live)
+    left = todo(a.block, names, ar, live)
     if not left:
         sys.exit(f"{a.block} has nothing left to paint")
     ref = ROOT / "style" / "ref.png"
@@ -147,7 +151,7 @@ def cmd_prepare(a):
 
 def cmd_paint(a):
     names, ar, live = shots(), areas(), live_painted()
-    left = [n for n in todo(a.block, names, set(ar["reserved"]), live) if not (PAINTED / f"{n}.png").exists()]
+    left = [n for n in todo(a.block, names, ar, live) if not (PAINTED / f"{n}.png").exists()]
     if not left:
         sys.exit(f"{a.block}: nothing left to paint here; run pack")
     sys.exit(run([sys.executable, "pipeline/paint.py", "--level", LEVEL, "--only", ",".join(left),
@@ -170,7 +174,7 @@ def last_log():
 
 def cmd_pack(a):
     names, ar, live = shots(), areas(), live_painted()
-    left = todo(a.block, names, set(ar["reserved"]), live)
+    left = todo(a.block, names, ar, live)
     done = [n for n in left if (PAINTED / f"{n}.png").exists()]
     if not done:
         sys.exit(f"{a.block}: no painted squares to pack")
