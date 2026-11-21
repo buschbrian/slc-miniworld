@@ -1,6 +1,5 @@
-# Upload new or changed files to the R2 bucket: map tiles (tiles/), painted squares (painted/detail/),
-# the style reference (style/ref.png) and the renders listed in deploy/site/renders.json (written by
-# build_site.py; run it first). Contributors paint from these without a Google key of their own.
+# Upload new or changed files to the R2 bucket: map tiles (tiles/), painted squares (painted/detail/)
+# and the style reference (style/ref.png). The last two let contributors paint with seam context.
 # Tracks the MD5 of what was sent in deploy/.synced.json, so a stitch that rewrites every tile only
 # uploads the tiles whose content changed. (Older state files held size-mtime; a file still matching
 # that is taken as sent and its hash recorded.)
@@ -16,20 +15,13 @@ if (Test-Path $state) { (Get-Content $state -Raw | ConvertFrom-Json).PSObject.Pr
 $sources = @(
     @{ Dir = 'tiles'; Prefix = ''; Filter = '*.jpg'; Type = 'image/jpeg'; Recurse = $true },
     @{ Dir = 'painted\detail'; Prefix = 'painted/detail/'; Filter = 'r*_c*.png'; Type = 'image/png'; Recurse = $false },
-    @{ Dir = 'style'; Prefix = 'style/'; Filter = 'ref.png'; Type = 'image/png'; Recurse = $false },
-    @{ Dir = 'renders\detail'; Prefix = 'renders/detail/'; Filter = 'r*_c*.jpg'; Type = 'image/jpeg'; Recurse = $false; Only = 'renders.json' }
+    @{ Dir = 'style'; Prefix = 'style/'; Filter = 'ref.png'; Type = 'image/png'; Recurse = $false }
 )
-$lists = @{}
-foreach ($s in $sources | Where-Object { $_.Only }) {
-    $p = Join-Path $PSScriptRoot "site\$($s.Only)"
-    $lists[$s.Only] = if (Test-Path $p) { [Collections.Generic.HashSet[string]]@((Get-Content $p -Raw | ConvertFrom-Json).detail) } else { [Collections.Generic.HashSet[string]]::new() }
-}
 $migrated = 0
 $todo = foreach ($s in $sources) {
     $dir = Join-Path $root $s.Dir
     if (-not (Test-Path $dir)) { continue }
-    Get-ChildItem $dir -File -Filter $s.Filter -Recurse:$s.Recurse |
-      Where-Object { -not $s.Only -or $lists[$s.Only].Contains($_.BaseName) } | ForEach-Object {
+    Get-ChildItem $dir -File -Filter $s.Filter -Recurse:$s.Recurse | ForEach-Object {
         $key = $s.Prefix + $_.FullName.Substring($dir.Length + 1).Replace('\', '/')
         $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm MD5).Hash
         if ($sent[$key] -eq "$($_.Length)-$($_.LastWriteTimeUtc.Ticks)") { $sent[$key] = $hash; $migrated++ }
