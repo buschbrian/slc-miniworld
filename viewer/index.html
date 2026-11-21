@@ -43,7 +43,9 @@
   const detailKey = layers.detail ? 'detail' : (layers.detail_render ? 'detail_render' : null);
   const overKey = layers.overview ? 'overview' : (layers.overview_render ? 'overview_render' : null);
   const DZ = detailKey ? layers[detailKey].native_zoom : 8;
-  const map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: DZ + 1, zoomSnap: 0.5, attributionControl: true });
+  const map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: DZ + 1, zoomSnap: 0.5, attributionControl: true,
+    zoomControl: false });
+  L.control.zoom({ position: window.innerWidth > 600 ? 'topright' : 'bottomright' }).addTo(map);
   const toLL = (x, y, z) => map.unproject([x, y], z);
   const boundsOf = (l) => L.latLngBounds(toLL(l.bounds_px[0], l.bounds_px[3], l.native_zoom), toLL(l.bounds_px[2], l.bounds_px[1], l.native_zoom));
   const add = (l, opts) => L.tileLayer(l.path, { minNativeZoom: l.min_zoom, maxNativeZoom: l.native_zoom, bounds: boundsOf(l),
@@ -51,7 +53,8 @@
   if (overKey) add(layers[overKey], { minZoom: 0, maxZoom: DZ + 1 });
   if (detailKey) add(layers[detailKey], { minZoom: overKey ? layers[overKey].native_zoom : 0, maxZoom: DZ + 1 });
   const main = layers[detailKey || overKey];
-  map.fitBounds(boundsOf(main));
+  const panelW = window.innerWidth > 600 ? document.getElementById('panel').offsetWidth + 24 : 0;
+  map.fitBounds(boundsOf(main), { paddingTopLeft: [panelW, 12], paddingBottomRight: [12, 12] });
   document.getElementById('status').textContent =
     Object.entries(layers).map(([k, l]) => `${k}: ${l.frames} squares`).join(' · ');
 
@@ -62,12 +65,15 @@
   for (const p of cfg.places) {
     const ll = toLL(p.px[0], p.px[1], p.px[2]);
     const covered = inside(p) || (overKey && p.level === 'overview');
-    const m = L.marker(ll, { icon, title: p.name, keyboard: true }).addTo(map)
-      .bindPopup(`<b>${p.name}</b><br>${p.blurb}`);
     const b = document.createElement('button');
     b.textContent = p.name;
-    if (!covered) { b.classList.add('off'); b.title = 'Not painted yet'; }
-    b.addEventListener('click', () => { map.flyTo(ll, p.level === 'overview' ? DZ - 3 : DZ - 1); m.openPopup(); });
+    if (covered) {
+      const m = L.marker(ll, { icon, title: p.name, keyboard: true }).addTo(map)
+        .bindPopup(`<b>${p.name}</b><br>${p.blurb}`);
+      b.addEventListener('click', () => { map.flyTo(ll, p.level === 'overview' ? DZ - 3 : DZ - 1); m.openPopup(); });
+    } else {
+      b.classList.add('off'); b.disabled = true; b.title = 'Not painted yet';
+    }
     nav.appendChild(b);
   }
 })();
