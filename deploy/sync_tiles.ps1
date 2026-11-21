@@ -1,8 +1,10 @@
 # Upload new or changed files to the R2 bucket: map tiles (tiles/), painted squares (painted/detail/)
 # and the style reference (style/ref.png). The last two let contributors paint with seam context.
-# Tracks what was sent in deploy/.synced.json.
+# Tracks the MD5 of what was sent in deploy/.synced.json, so a stitch that rewrites every tile only
+# uploads the tiles whose content changed. (Older state files held size-mtime; a file still matching
+# that is taken as sent and its hash recorded.)
 #   pwsh deploy/sync_tiles.ps1            (set $env:WRANGLER to a wrangler binary; default: npx wrangler)
-param([int]$Parallel = 8)
+param([int]$Parallel = 8, [switch]$DryRun)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $bucket = 'slc-miniworld-tiles'
@@ -15,18 +17,24 @@ $sources = @(
     @{ Dir = 'painted\detail'; Prefix = 'painted/detail/'; Filter = 'r*_c*.png'; Type = 'image/png'; Recurse = $false },
     @{ Dir = 'style'; Prefix = 'style/'; Filter = 'ref.png'; Type = 'image/png'; Recurse = $false }
 )
+$migrated = 0
 $todo = foreach ($s in $sources) {
     $dir = Join-Path $root $s.Dir
     if (-not (Test-Path $dir)) { continue }
     Get-ChildItem $dir -File -Filter $s.Filter -Recurse:$s.Recurse | ForEach-Object {
         $key = $s.Prefix + $_.FullName.Substring($dir.Length + 1).Replace('\', '/')
-        $sig = "$($_.Length)-$($_.LastWriteTimeUtc.Ticks)"
-        if ($sent[$key] -ne $sig) { [pscustomobject]@{ Key = $key; Path = $_.FullName; Sig = $sig; Type = $s.Type } }
+        $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm MD5).Hash
+        if ($sent[$key] -eq "$($_.Length)-$($_.LastWriteTimeUtc.Ticks)") { $sent[$key] = $hash; $migrated++ }
+        elseif ($sent[$key] -ne $hash) { [pscustomobject]@{ Key = $key; Path = $_.FullName; Sig = $hash; Type = $s.Type } }
     }
 }
 $todo = @($todo)
 "$($todo.Count) files to upload"
-if (-not $todo.Count) { return }
+if ($DryRun) { "dry run: $migrated would move to content hashes; nothing uploaded or saved"; return }
+if (-not $todo.Count) {
+    if ($migrated) { $sent | ConvertTo-Json -Depth 2 | Set-Content $state; "$migrated entries moved to content hashes" }
+    return
+}
 
 $w = if ($env:WRANGLER) { $env:WRANGLER } else { 'npx' }
 $wArgs = if ($env:WRANGLER) { @() } else { @('--yes', 'wrangler') }
