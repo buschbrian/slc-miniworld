@@ -4,19 +4,22 @@ The goal is all of Salt Lake County: 21,264 squares, from the Oquirrhs to the Wa
 from the airport to Draper. The map is painted one 1,024 px square at a time, and each square
 costs one AI image generation. A ChatGPT plan allows roughly 190 of those a day, which is more
 than 100 days for one person, so the map grows faster when more people paint.
-You can take a block of up to 25 squares, paint it on your own machine with your own accounts,
-and send the result back. It goes onto the [live map](https://slc-miniworld.pages.dev) after a
+You can take a block of up to 25 squares, paint it on your own machine with your own image
+generation, and send the result back. The renders are shared, so you only paint. It goes onto the [live map](https://slc-miniworld.pages.dev) after a
 check, and your GitHub name goes into the credits.
 
 ## What you need
 
-- Google Chrome, Node.js 20 or later, Python 3.11 or later and [uv](https://docs.astral.sh/uv/).
+- Python 3.11 or later and [uv](https://docs.astral.sh/uv/).
 - The [Codex CLI](https://github.com/openai/codex), signed in with a ChatGPT plan that includes
   image generation. Every square uses one generation from your plan.
-- A Google Maps Platform API key with the **Map Tiles API** enabled. Renders come from Google's
-  Photorealistic 3D Tiles through your key. Each Chrome launch is one root-tileset request (one
-  per 40 squares); check the quota page for your key before you start.
-- About 2 GB of free disk space for a block.
+- About 1 GB of free disk space for a block.
+
+You do not need a Google key. The maintainer renders blocks ahead of time and shares the renders
+through the live site; `contrib.py open` lists the blocks that are ready. If you would rather
+render yourself (a block that is not shared yet), add Google Chrome, Node.js 20 or later and a
+Google Maps Platform key with the **Map Tiles API** enabled as `GOOGLE_MAPS_API_KEY` in `.env`;
+`prepare` then renders whatever is missing on your machine.
 
 ## Rules that keep the map consistent
 
@@ -40,33 +43,32 @@ Windows, `.venv/bin/python` on macOS and Linux.
 
    ```bash
    git clone https://github.com/buschbrian/slc-miniworld && cd slc-miniworld
-   npm install
    uv venv .venv && uv pip install --python .venv numpy pillow
-   cp .env.example .env      # then add GOOGLE_MAPS_API_KEY=... (or: bash scripts/set_key.sh)
    ```
 
-   On Linux, set `CHROME_PATH` to your Chrome or Chromium binary. The renderer needs a GPU-backed
+   Rendering yourself as well? Also run `npm install` and `cp .env.example .env`, then add the key.
+   On Linux, set `CHROME_PATH` to your Chrome or Chromium binary; the renderer needs a GPU-backed
    WebGL context.
 
 2. **Pick a block.** Blocks are 5 × 5 squares, named like `b2_-3`.
 
    ```bash
-   python pipeline/contrib.py open          # open blocks, nearest downtown first
+   python pipeline/contrib.py open          # blocks ready to paint, nearest downtown first
    python pipeline/contrib.py show b2_-3    # what a block holds
    ```
 
    Then open a **Claim a block** issue with the block id. Wait for the claim to be acknowledged
    so two people do not paint the same squares.
 
-3. **Prepare** the block. This downloads the style reference and the painted squares around your
-   block, so your edges continue the existing art. It then renders your squares, checks them and
-   builds the water masks.
+3. **Prepare** the block. This downloads the style reference, the painted squares around your
+   block (so your edges continue the existing art) and the shared renders of your squares.
 
    ```bash
    python pipeline/contrib.py prepare b2_-3
    ```
 
-   If it reports squares that are still missing, run it again. Renders are resumable.
+   If some renders are not shared yet, paint the others now and run `prepare` again later, or
+   ask on your claim issue.
 
 4. **Paint.**
 
@@ -90,8 +92,8 @@ Windows, `.venv/bin/python` on macOS and Linux.
 
 ## What happens next
 
-The maintainer runs `pipeline/intake.py` on your zip. It re-checks every square against a fresh
-render of the same place, rejects anything shifted or out of place, and builds a side-by-side
+The maintainer runs `pipeline/intake.py` on your zip. It re-checks every square against the
+maintainer's render of the same place, rejects anything shifted or out of place, and builds a side-by-side
 review sheet. Accepted squares go through the same water and stitching pass as the rest of the
 map and appear on the live site at the next deploy. The issue is closed with a link.
 

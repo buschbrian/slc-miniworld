@@ -1,12 +1,13 @@
 """Contributor helper: claim a 5 x 5 block of detail squares, render it, paint it with Codex, pack it.
 
-  python pipeline/contrib.py open                  # unpainted blocks open to contributors, nearest first
+  python pipeline/contrib.py open                  # blocks ready to paint (renders shared), nearest first
   python pipeline/contrib.py show b2_-3            # what is in a block and what is left to do
-  python pipeline/contrib.py prepare b2_-3         # style reference + painted neighbours, render, QA, masks
+  python pipeline/contrib.py prepare b2_-3         # style reference, painted neighbours and the renders
   python pipeline/contrib.py paint b2_-3           # paint the block's open squares with Codex
   python pipeline/contrib.py pack b2_-3 --github yourname   # zip(s) to attach to your claim issue
 
-Squares the maintainer's own run paints (data/frames_by_area.json "reserved") and squares already on
+Renders come from the live site, so no Google key is needed. With GOOGLE_MAPS_API_KEY in .env, prepare
+renders any square that is not shared yet on this machine instead. Squares the maintainer's own run paints (data/frames_by_area.json "reserved") and squares already on
 the live site are never rendered, painted or packed here.
 """
 import argparse
@@ -23,6 +24,7 @@ from pathlib import Path
 from PIL import Image
 
 from geo import ROOT, frame_name, parse_name
+from painters import env_value
 
 SITE = os.environ.get("SLC_MINIWORLD_SITE", "https://slc-miniworld.pages.dev").rstrip("/")
 B = 5
@@ -56,12 +58,16 @@ def fetch(path):
         return r.read()
 
 
-def live_painted():
+def live_list(name):
     try:
-        return set(json.loads(fetch("painted.json")).get(LEVEL, []))
+        return set(json.loads(fetch(name)).get(LEVEL, []))
     except Exception as e:  # noqa: BLE001 - offline still lets you work; pack re-checks later
-        print(f"warning: could not read {SITE}/painted.json ({e}); treating nothing as painted")
+        print(f"warning: could not read {SITE}/{name} ({e}); treating it as empty")
         return set()
+
+
+def live_painted():
+    return live_list("painted.json")
 
 
 def block_frames(block, all_names):
@@ -85,16 +91,21 @@ def run(cmd):
 
 
 def cmd_open(a):
-    names, ar, live = shots(), areas(), live_painted()
+    ar, live, shared = areas(), live_painted(), live_list("renders.json")
     blocks = {}
     for n in paintable(ar) - live:
         blocks.setdefault(block_of(n), []).append(n)
+
     def dist(b):
         br, bc = (int(v) for v in b[1:].split("_"))
         return (br * B + 2) ** 2 + (bc * B + 2) ** 2
-    print(f"{len(blocks)} blocks with open Salt Lake County squares (nearest the temple first):")
-    for b in sorted(blocks, key=dist)[: a.limit]:
-        print(f"  {b:10s} {len(todo(b, names, ar, live)):2d} squares to paint")
+    ready = [b for b in blocks if all(n in shared for n in blocks[b])]
+    show = sorted(blocks if a.all else ready, key=dist)[: a.limit]
+    print(f"{len(ready)} blocks ready to paint (renders shared), {len(blocks) - len(ready)} more waiting for "
+          f"renders{' (shown with --all)' if not a.all else ''}; nearest the temple first:")
+    for b in show:
+        n_ready = sum(n in shared for n in blocks[b])
+        print(f"  {b:10s} {len(blocks[b]):2d} squares to paint, {n_ready:2d} renders shared")
 
 
 def cmd_show(a):
@@ -131,22 +142,33 @@ def cmd_prepare(a):
             p.write_bytes(fetch(f"painted/{LEVEL}/{n}.png"))
             got += 1
     print(f"{got} painted neighbours downloaded for seam context")
+    RENDERS.mkdir(parents=True, exist_ok=True)
+    shared = live_list("renders.json")
+    got = 0
+    for n in left:
+        if n in shared and not (RENDERS / f"{n}.jpg").exists():
+            (RENDERS / f"{n}.jpg").write_bytes(fetch(f"renders/{LEVEL}/{n}.jpg"))
+            got += 1
+    print(f"{got} shared renders downloaded")
     need = [n for n in left if not (RENDERS / f"{n}.jpg").exists()]
-    for i in range(0, len(need), 40):
-        run(["node", "render3d/server.mjs", "--mode", "render", "--level", LEVEL,
-             "--only", ",".join(need[i:i + 40]), "--timeout", "150000"])
-    run([sys.executable, "pipeline/prep_renders.py", "--level", LEVEL])
-    qa = json.loads((RENDERS / "qa.json").read_text()) if (RENDERS / "qa.json").exists() else {}
-    bad = [n for n in left if "black_or_missing" in qa.get(n, {}).get("flags", [])]
-    missing = [n for n in left if not (RENDERS / f"{n}.jpg").exists()]
-    if bad:
-        print("re-rendering squares with missing geometry: " + ",".join(bad))
-        run(["node", "render3d/server.mjs", "--mode", "render", "--level", LEVEL, "--only", ",".join(bad),
-             "--timeout", "150000", "--redo"])
+    if need and env_value("GOOGLE_MAPS_API_KEY"):
+        for i in range(0, len(need), 40):
+            run(["node", "render3d/server.mjs", "--mode", "render", "--level", LEVEL,
+                 "--only", ",".join(need[i:i + 40]), "--timeout", "150000"])
         run([sys.executable, "pipeline/prep_renders.py", "--level", LEVEL])
-    run([sys.executable, "pipeline/water.py", "masks", "--level", LEVEL])
-    print(f"ready: {len(left) - len(missing)} of {len(left)} squares rendered"
-          + (f"; still missing {','.join(missing)} (run prepare again)" if missing else ""))
+        qa = json.loads((RENDERS / "qa.json").read_text()) if (RENDERS / "qa.json").exists() else {}
+        bad = [n for n in need if "black_or_missing" in qa.get(n, {}).get("flags", [])]
+        if bad:
+            print("re-rendering squares with missing geometry: " + ",".join(bad))
+            run(["node", "render3d/server.mjs", "--mode", "render", "--level", LEVEL, "--only", ",".join(bad),
+                 "--timeout", "150000", "--redo"])
+            run([sys.executable, "pipeline/prep_renders.py", "--level", LEVEL])
+        run([sys.executable, "pipeline/water.py", "masks", "--level", LEVEL])
+    missing = [n for n in left if not (RENDERS / f"{n}.jpg").exists()]
+    print(f"ready: {len(left) - len(missing)} of {len(left)} squares have renders")
+    if missing:
+        print(f"  not shared yet: {','.join(missing)}. Paint the rest now and these later, pick a block from "
+              "`open`, or ask on your claim issue.")
 
 
 def cmd_paint(a):
@@ -212,6 +234,7 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("open")
     p.add_argument("--limit", type=int, default=25)
+    p.add_argument("--all", action="store_true", help="also list blocks still waiting for renders")
     for name in ("show", "prepare", "paint", "pack"):
         p = sub.add_parser(name)
         p.add_argument("block", help="block id such as b2_-3")
