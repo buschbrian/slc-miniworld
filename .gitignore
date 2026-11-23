@@ -16,3 +16,5 @@ deploy/site/
 deploy/.synced.json
 deploy/.wrangler/
 /submissions/
+/cache/
+viewer/life.json

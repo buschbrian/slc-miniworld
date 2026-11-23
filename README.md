@@ -89,6 +89,7 @@ python pipeline/paint.py --level detail --block=-1:1,-1:1 --workers 3
 # 6. water/defect pass, stitch, pyramid, viewer
 python pipeline/water.py fix --level detail
 python pipeline/stitch.py --level detail
+python pipeline/life.py                       # OSM streets for the moving cars, people and trains
 python -m http.server 8000                    # then open http://localhost:8000/viewer/
 ```
 
