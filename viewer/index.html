@@ -2,45 +2,163 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tiny Salt Lake City</title>
+<meta name="description" content="A painted, isometric map of Salt Lake City, one square at a time.">
+<meta name="theme-color" content="#181a1f">
 <link rel="stylesheet" href="vendor/leaflet.css">
 <style>
-  :root { --bg: #181a1f; --panel: rgba(24, 26, 31, 0.92); --ink: #ece6da; --muted: #a59d8f; --accent: #e3a35b; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
-    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  #map { position: absolute; inset: 0; background: var(--bg); }
-  .leaflet-container { background: var(--bg); font: inherit; }
+  :root {
+    --ground: #181a1f;
+    --panel: rgba(29, 31, 37, 0.94);
+    --line: rgba(241, 234, 220, 0.1);
+    --ink: #f1eadc;
+    --muted: #a39b8c;
+    --sand: #e6a95c;
+    --sign: #1e6b47;
+    --sign-ink: #f7f4ec;
+    --display: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif;
+    --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: var(--ground); color: var(--ink); font: 14px/1.45 var(--body); }
+  #map { position: absolute; inset: 0; background: var(--ground); }
+  .leaflet-container { background: var(--ground); font: inherit; }
   .leaflet-tile { image-rendering: pixelated; }
-  #panel { position: absolute; top: 12px; left: 12px; z-index: 1000; width: 240px; max-height: calc(100% - 64px);
-    overflow: auto; background: var(--panel); border-radius: 10px; padding: 12px 14px; box-shadow: 0 6px 24px rgba(0,0,0,.4); }
-  #panel h1 { font-size: 15px; margin: 0 0 2px; letter-spacing: .02em; }
-  #panel p { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
-  #places button { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--ink);
-    padding: 5px 6px; border-radius: 6px; font: inherit; cursor: pointer; }
-  #places button:hover, #places button:focus-visible { background: rgba(227,163,91,.18); outline: none; }
-  #places button.off { color: var(--muted); }
-  #panel p.help { margin: 10px 0 0; }
-  #panel p.help a { color: var(--accent); }
-  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); color: var(--ink); }
-  .leaflet-popup-content b { color: var(--accent); }
-  .leaflet-control-attribution { background: rgba(24,26,31,.8) !important; color: var(--muted) !important; }
+  .leaflet-life-pane canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--sand); outline-offset: 2px; }
+
+  /* Panel: a floating card on wide screens, a bottom sheet on phones. */
+  #panel { position: absolute; z-index: 1000; top: 12px; left: 12px; width: 300px; max-height: calc(100% - 24px);
+    display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .45); backdrop-filter: blur(6px); }
+  .bar { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px 12px; }
+  #toggle { flex: 1; display: flex; align-items: center; gap: 9px; min-width: 0; padding: 4px 6px; margin: -4px -6px;
+    background: none; border: 0; border-radius: 8px; cursor: pointer; text-align: left; }
+  #toggle:hover { background: rgba(241, 234, 220, .06); }
+  #toggle h1 { margin: 0; font: 700 16px/1.15 var(--display); letter-spacing: -0.01em; white-space: nowrap; }
+  #toggle .chev { margin-left: auto; color: var(--muted); transition: transform .2s; }
+  #panel[data-open="false"] .chev { transform: rotate(-90deg); }
+  .mark { flex: none; }
+
+  /* The one loud thing: a Salt Lake street sign naming the grid address under the centre of the map. */
+  .sign { align-self: flex-start; display: flex; align-items: stretch; background: var(--sign); color: var(--sign-ink);
+    border-radius: 5px; box-shadow: inset 0 0 0 1.5px rgba(247, 244, 236, .85), 0 1px 0 rgba(0,0,0,.4);
+    font: 700 13px/1 var(--display); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+  .sign span { padding: 6px 9px; font-variant-numeric: tabular-nums; }
+  .sign span + span { border-left: 1.5px solid rgba(247, 244, 236, .85); }
+
+  #body { overflow: auto; padding: 0 14px 14px; border-top: 1px solid var(--line); }
+  #panel[data-open="false"] #body { display: none; }
+  section { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  section:last-child { border-bottom: 0; padding-bottom: 0; }
+  h2 { margin: 0 0 8px; font: 600 11px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .count { font: 600 13px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+  .count b { color: var(--sand); font-weight: 700; }
+  .meter { height: 6px; margin: 8px 0 6px; border-radius: 3px; background: rgba(241, 234, 220, .1); overflow: hidden; }
+  .meter i { display: block; height: 100%; min-width: 3px; background: var(--sand); border-radius: 3px; }
+  .note { margin: 0; color: var(--muted); font-size: 12.5px; }
+  .note a { color: var(--sand); }
+
+  .switch { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0;
+    background: none; border: 0; cursor: pointer; text-align: left; }
+  .switch small { display: block; color: var(--muted); font-size: 12px; }
+  .switch .knob { flex: none; width: 32px; height: 18px; border-radius: 9px; background: rgba(241, 234, 220, .18);
+    position: relative; transition: background .15s; }
+  .switch .knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--ink); transition: transform .15s; }
+  .switch[aria-checked="true"] .knob { background: var(--sand); }
+  .switch[aria-checked="true"] .knob::after { transform: translateX(14px); background: #2a2216; }
+  .switch[disabled] { opacity: .45; cursor: default; }
+
+  #find { width: 100%; padding: 7px 10px; margin-bottom: 6px; color: var(--ink); background: rgba(241, 234, 220, .07);
+    border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  #find::placeholder { color: var(--muted); }
+  .places button { display: block; width: 100%; padding: 6px 8px; margin: 0 -8px; width: calc(100% + 16px);
+    text-align: left; background: none; border: 0; border-radius: 7px; cursor: pointer; }
+  .places button:hover { background: rgba(230, 169, 92, .14); }
+  .places button small { color: var(--muted); }
+  details { margin-top: 6px; color: var(--muted); }
+  summary { cursor: pointer; font-size: 12.5px; padding: 4px 0; }
+  details ul { margin: 4px 0 0; padding-left: 16px; font-size: 12.5px; }
+  .empty { color: var(--muted); font-size: 12.5px; padding: 4px 0; }
+
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); color: var(--ink); border-radius: 10px; }
+  .leaflet-popup-content { margin: 10px 14px; }
+  .leaflet-popup-content b { color: var(--sand); font-family: var(--display); }
+  .leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+  .leaflet-control-attribution { background: rgba(24, 26, 31, .8) !important; color: var(--muted) !important; }
   .leaflet-control-attribution a { color: var(--ink) !important; }
-  .pin { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid #1b1d22; box-shadow: 0 0 0 2px rgba(227,163,91,.35); }
-  @media (max-width: 600px) { #panel { width: auto; right: 12px; max-height: 38%; } }
+  .leaflet-bar a { background: var(--panel); color: var(--ink); border-color: var(--line); }
+  .leaflet-bar a:hover { background: #2c2f37; color: var(--ink); }
+  .pin { width: 12px; height: 12px; border-radius: 50%; background: var(--sand); border: 2px solid #1b1d22;
+    box-shadow: 0 0 0 2px rgba(230, 169, 92, .35); }
+
+  @media (max-width: 600px) {
+    #panel { top: calc(8px + env(safe-area-inset-top)); left: 8px; right: 8px; width: auto; max-height: 70%; }
+    .bar { flex-direction: row; align-items: center; }
+    .sign { align-self: center; }
+    #toggle h1 { font-size: 15px; }
+  }
+  @media (prefers-reduced-motion: reduce) { #toggle .chev, .switch .knob, .switch .knob::after { transition: none; } }
 </style>
 </head>
 <body>
-<div id="map" role="application" aria-label="Painted map of Salt Lake City"></div>
-<aside id="panel">
-  <h1>Tiny Salt Lake City</h1>
-  <p id="status">Loading…</p>
-  <nav id="places" aria-label="Places"></nav>
-  <p class="help"><a href="https://github.com/buschbrian/slc-miniworld/blob/main/CONTRIBUTING.md">Help paint the rest of the city</a></p>
+<aside id="panel" data-open="true" aria-label="About this map">
+  <div class="bar">
+    <button id="toggle" aria-expanded="true" aria-controls="body">
+      <svg class="mark" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+        <path d="M11 2 20 6.5 11 11 2 6.5Z" fill="#e6a95c"/><path d="M2 6.5 11 11v9.5L2 16Z" fill="#9c6a35"/>
+        <path d="M20 6.5 11 11v9.5l9-4.5Z" fill="#c2843f"/></svg>
+      <h1>Tiny Salt Lake City</h1>
+      <svg class="chev" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4" fill="none"
+        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="sign" id="sign" title="Salt Lake grid address near the centre of the map" aria-live="off">
+      <span id="sign-ns">—</span><span id="sign-ew">—</span></div>
+  </div>
+  <div id="body">
+    <section>
+      <div class="count" id="count">Loading the map…</div>
+      <div class="meter" aria-hidden="true"><i id="meter" style="width:0"></i></div>
+      <p class="note">Each square is rendered from Google's 3D city through one fixed camera, then repainted.
+        <a href="https://github.com/buschbrian/slc-miniworld/blob/main/CONTRIBUTING.md">Help paint the rest</a>.</p>
+    </section>
+    <section>
+      <h2>Show</h2>
+      <button class="switch" id="sw-life" role="switch" aria-checked="true">
+        <span>Traffic and people<small>Cars, walkers and TRAX trains on OpenStreetMap streets</small></span><span class="knob"></span></button>
+      <button class="switch" id="sw-pins" role="switch" aria-checked="true"><span>Place pins</span><span class="knob"></span></button>
+    </section>
+    <section>
+      <h2>Places</h2>
+      <input id="find" type="search" placeholder="Find a place" aria-label="Find a place" autocomplete="off">
+      <nav class="places" id="places" aria-label="Painted places"></nav>
+      <details id="later" hidden><summary></summary><ul id="later-list"></ul></details>
+    </section>
+  </div>
 </aside>
+<div id="map" role="application" aria-label="Painted map of Salt Lake City"></div>
 <script src="vendor/leaflet.js"></script>
 <script>
 (async () => {
+  const COUNTY_SQUARES = 20838;
+  const store = { get: (k, d) => { try { const v = localStorage.getItem('tinyslc.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set: (k, v) => { try { localStorage.setItem('tinyslc.' + k, JSON.stringify(v)); } catch {} } };
+  const narrow = () => window.innerWidth <= 600;
+  const panel = document.getElementById('panel'), toggle = document.getElementById('toggle');
+  const setOpen = (open, remember) => {
+    panel.dataset.open = String(open);
+    toggle.setAttribute('aria-expanded', String(open));
+    if (remember) store.set(narrow() ? 'openNarrow' : 'open', open);
+  };
+  setOpen(store.get(narrow() ? 'openNarrow' : 'open', !narrow()), false);
+  toggle.addEventListener('click', () => setOpen(panel.dataset.open !== 'true', true));
+  panel.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.dataset.open === 'true') { setOpen(false, true); toggle.focus(); } });
+
   const cfg = await (await fetch('config.json', { cache: 'no-store' })).json();
   const layers = cfg.layers;
   const detailKey = layers.detail ? 'detail' : (layers.detail_render ? 'detail_render' : null);
@@ -48,7 +166,7 @@
   const DZ = detailKey ? layers[detailKey].native_zoom : 8;
   const map = L.map('map', { crs: L.CRS.Simple, minZoom: 0, maxZoom: DZ + 1, zoomSnap: 0.5, attributionControl: true,
     zoomControl: false });
-  L.control.zoom({ position: window.innerWidth > 600 ? 'topright' : 'bottomright' }).addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
   const toLL = (x, y, z) => map.unproject([x, y], z);
   const boundsOf = (l) => L.latLngBounds(toLL(l.bounds_px[0], l.bounds_px[3], l.native_zoom), toLL(l.bounds_px[2], l.bounds_px[1], l.native_zoom));
   const add = (l, opts) => L.tileLayer(l.path, { minNativeZoom: l.min_zoom, maxNativeZoom: l.native_zoom, bounds: boundsOf(l),
@@ -82,30 +200,347 @@
     (overKey ? new Keyed(l.path, opts) : L.tileLayer(l.path, opts)).addTo(map);
   }
   const main = layers[detailKey || overKey];
-  const panelW = window.innerWidth > 600 ? document.getElementById('panel').offsetWidth + 24 : 0;
-  map.fitBounds(boundsOf(main), { paddingTopLeft: [panelW, 12], paddingBottomRight: [12, 12] });
-  document.getElementById('status').textContent =
-    Object.entries(layers).map(([k, l]) => `${k}: ${l.frames} squares`).join(' · ');
 
-  const nav = document.getElementById('places');
-  const inside = (p) => { const l = layers[detailKey || overKey]; const s = 2 ** (l.native_zoom - p.px[2]);
+  // The view lives in the URL (#zoom/x/y in detail pixels), so a link opens where it was copied.
+  const fromHash = () => {
+    const m = location.hash.match(/^#(\d+(?:\.\d+)?)\/(-?\d+)\/(-?\d+)$/);
+    return m ? { z: +m[1], x: +m[2], y: +m[3] } : null;
+  };
+  const start = fromHash();
+  if (start) map.setView(toLL(start.x, start.y, DZ), Math.min(Math.max(start.z, 0), DZ + 1));
+  else {
+    const padLeft = !narrow() && panel.dataset.open === 'true' ? panel.offsetWidth + 24 : 12;
+    map.fitBounds(boundsOf(main), { paddingTopLeft: [padLeft, narrow() ? 70 : 12], paddingBottomRight: [12, 12] });
+  }
+  window.addEventListener('hashchange', () => { const v = fromHash(); if (v) map.setView(toLL(v.x, v.y, DZ), v.z); });
+
+  // Salt Lake grid address under the map centre. Ground metres from the anchor come from inverting the camera
+  // at the anchor's ground height; the grid origin is Main Street at South Temple.
+  const H = (cfg.camera?.heading_deg ?? 45) * Math.PI / 180, E = (cfg.camera?.elevation_deg ?? 30) * Math.PI / 180;
+  const PPM = cfg.camera?.ppm ?? 3.4;
+  const scr = [[Math.cos(H), -Math.sin(H)], [-Math.sin(E) * Math.sin(H), -Math.sin(E) * Math.cos(H)]];  // ground (e, n) -> px / ppm
+  const det = scr[0][0] * scr[1][1] - scr[0][1] * scr[1][0];
+  const toGround = (x, y) => [(scr[1][1] * x - scr[0][1] * y) / det / PPM, (-scr[1][0] * x + scr[0][0] * y) / det / PPM];
+  const ORIGIN_E = -78.5, ORIGIN_N = 143.8, UNIT_E = 2.43, UNIT_N = 2.33;  // anchor -> Main & South Temple, metres per address unit
+  const signNS = document.getElementById('sign-ns'), signEW = document.getElementById('sign-ew');
+  const street = (v, pos, neg, zero) => { const r = Math.round(v / 50) * 50; return Math.abs(v) < 50 ? zero : `${Math.abs(r)} ${r > 0 ? pos : neg}`; };
+  const onMove = () => {
+    const c = map.project(map.getCenter(), DZ);
+    const [e, n] = toGround(c.x, c.y);
+    signNS.textContent = street((n + ORIGIN_N) / UNIT_N, 'N', 'S', 'S Temple');
+    signEW.textContent = street((e + ORIGIN_E) / UNIT_E, 'E', 'W', 'Main');
+  };
+  map.on('move', onMove);
+  map.on('moveend', () => {
+    const c = map.project(map.getCenter(), DZ);
+    history.replaceState(null, '', `#${map.getZoom()}/${Math.round(c.x)}/${Math.round(c.y)}`);
+  });
+  onMove();
+
+  const painted = layers[detailKey]?.frames ?? 0;
+  document.getElementById('count').innerHTML =
+    `<b>${painted.toLocaleString()}</b> of ${COUNTY_SQUARES.toLocaleString()} squares painted`;
+  document.getElementById('meter').style.width = `${(100 * painted / COUNTY_SQUARES).toFixed(2)}%`;
+
+  // Places
+  const inside = (p) => { const l = main; const s = 2 ** (l.native_zoom - p.px[2]);
     return p.px[0] * s >= l.bounds_px[0] && p.px[0] * s <= l.bounds_px[2] && p.px[1] * s >= l.bounds_px[1] && p.px[1] * s <= l.bounds_px[3]; };
   const icon = L.divIcon({ className: '', html: '<div class="pin"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
-  for (const p of cfg.places) {
+  const pins = L.layerGroup().addTo(map);
+  const nav = document.getElementById('places'), laterList = document.getElementById('later-list');
+  const items = [];
+  let later = 0;
+  for (const p of cfg.places || []) {
     const ll = toLL(p.px[0], p.px[1], p.px[2]);
-    const covered = inside(p) || (overKey && p.level === 'overview');
-    const b = document.createElement('button');
-    b.textContent = p.name;
-    if (covered) {
-      const m = L.marker(ll, { icon, title: p.name, keyboard: true }).addTo(map)
-        .bindPopup(`<b>${p.name}</b><br>${p.blurb}`);
-      b.addEventListener('click', () => { map.flyTo(ll, p.level === 'overview' ? DZ - 3 : DZ - 1); m.openPopup(); });
+    if (inside(p) || (overKey && p.level === 'overview')) {
+      const m = L.marker(ll, { icon, title: p.name, keyboard: true }).addTo(pins).bindPopup(`<b>${p.name}</b><br>${p.blurb}`);
+      const b = document.createElement('button');
+      b.innerHTML = `${p.name}${p.level === 'overview' ? ' <small>· overview</small>' : ''}`;
+      b.addEventListener('click', () => {
+        if (narrow()) setOpen(false, false);
+        map.flyTo(ll, p.level === 'overview' ? DZ - 3 : DZ - 1);
+        map.once('moveend', () => { if (map.hasLayer(pins)) m.openPopup(); });
+      });
+      nav.appendChild(b);
+      items.push([p.name.toLowerCase(), b]);
     } else {
-      b.classList.add('off'); b.disabled = true; b.title = 'Not painted yet';
+      const li = document.createElement('li');
+      li.textContent = p.name;
+      laterList.appendChild(li);
+      items.push([p.name.toLowerCase(), li]);
+      later++;
     }
-    nav.appendChild(b);
+  }
+  if (later) {
+    document.getElementById('later').hidden = false;
+    document.querySelector('#later summary').textContent = `Not painted yet (${later})`;
+  }
+  const empty = document.createElement('div');
+  empty.className = 'empty';
+  empty.textContent = 'No place by that name. Try a neighbourhood or landmark.';
+  document.getElementById('find').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    let shown = 0;
+    for (const [name, el] of items) { const hit = !q || name.includes(q); el.hidden = !hit; shown += hit; }
+    if (!shown) nav.appendChild(empty); else empty.remove();
+    const laterBox = document.getElementById('later');
+    const laterHits = [...laterList.children].filter((li) => !li.hidden).length;
+    laterBox.hidden = !laterHits;
+    if (q && laterHits) laterBox.open = true;
+  });
+  const switchFor = (id, key, initial, onChange) => {
+    const el = document.getElementById(id);
+    const set = (v) => { el.setAttribute('aria-checked', String(v)); onChange(v); };
+    set(store.get(key, initial));
+    el.addEventListener('click', () => { const v = el.getAttribute('aria-checked') !== 'true'; store.set(key, v); set(v); });
+    return el;
+  };
+  switchFor('sw-pins', 'pins', true, (v) => v ? pins.addTo(map) : pins.remove());
+
+  // Life: cars, people and trains moving along paths from pipeline/life.py.
+  const lifeSwitch = document.getElementById('sw-life');
+  let life = null;
+  try {
+    const r = await fetch('life.json');
+    if (!r.ok) throw new Error(`life.json ${r.status}`);
+    life = createLife(map, await r.json(), DZ);
+    map.attributionControl.addAttribution('Traffic on streets © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, elevation USGS 3DEP');
+  } catch (err) {
+    lifeSwitch.disabled = true;
+    lifeSwitch.querySelector('small').textContent = 'Not available for this build of the map';
+  }
+  if (life) {
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    switchFor('sw-life', 'life', !calm, (v) => life.enable(v));
   }
 })();
+
+function createLife(map, data, DZ) {
+  const KIND = Object.fromEntries(data.kinds.map((k, i) => [k, i]));
+  const H = data.heading_deg * Math.PI / 180, E = data.elevation_deg * Math.PI / 180, PPM = data.ppm;
+  const R = [Math.cos(H), -Math.sin(H), 0];
+  const U = [Math.sin(E) * Math.sin(H), Math.sin(E) * Math.cos(H), Math.cos(E)];
+  const proj = (e, n, u) => [(R[0] * e + R[1] * n) * PPM, -(U[0] * e + U[1] * n + U[2] * u) * PPM];  // ground metres -> detail px
+  const det = R[0] * -U[1] - R[1] * -U[0];
+  const ground = (x, y) => [(-U[1] * x - R[1] * y) / det / PPM, (U[0] * x + R[0] * y) / det / PPM];  // px direction -> ground metres
+  const toward = [-Math.sin(H), -Math.cos(H)];  // horizontal direction from the city toward the camera
+
+  // Decode paths: [kind, oneway, startNode, endNode, [x0, y0, dx, dy, ...], hiddenSpans?]
+  const ways = data.ways.map((w) => {
+    const f = w[4], n = f.length / 2, pts = new Float32Array(f.length), cum = new Float32Array(n);
+    let x = f[0], y = f[1];
+    pts[0] = x; pts[1] = y;
+    for (let i = 1; i < n; i++) {
+      x += f[2 * i]; y += f[2 * i + 1]; pts[2 * i] = x; pts[2 * i + 1] = y;
+      cum[i] = cum[i - 1] + Math.hypot(pts[2 * i] - pts[2 * i - 2], pts[2 * i + 1] - pts[2 * i - 1]);
+    }
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (let i = 0; i < n; i++) { x0 = Math.min(x0, pts[2 * i]); x1 = Math.max(x1, pts[2 * i]); y0 = Math.min(y0, pts[2 * i + 1]); y1 = Math.max(y1, pts[2 * i + 1]); }
+    return { kind: w[0], oneway: !!w[1], a: w[2], b: w[3], pts, cum, len: cum[n - 1], hidden: w[5] || [], box: [x0, y0, x1, y1] };
+  });
+  const nodes = new Map();
+  ways.forEach((w, i) => { for (const [node, end] of [[w.a, 0], [w.b, 1]]) if (node >= 0) {
+    if (!nodes.has(node)) nodes.set(node, []); nodes.get(node).push([i, end]); } });
+  const CELL = 768, grid = new Map();
+  ways.forEach((w, i) => {
+    for (let cx = Math.floor(w.box[0] / CELL); cx <= Math.floor(w.box[2] / CELL); cx++)
+      for (let cy = Math.floor(w.box[1] / CELL); cy <= Math.floor(w.box[3] / CELL); cy++) {
+        const k = cx + ',' + cy; if (!grid.has(k)) grid.set(k, []); grid.get(k).push(i); }
+  });
+
+  const family = (k) => k === KIND.rail ? 'rail' : k === KIND.foot ? 'foot' : 'road';
+  // Agents per 1,000 detail pixels (about 294 m) of path, and speed in metres per second.
+  const DENSITY = [16, 12, 4, 2, 6, 0.2], SPEED = [27, 15, 10, 6, 1.35, 13];
+  const CARS = ['#c9493b', '#e8e2d4', '#2f5d8a', '#3a3f47', '#d9a441', '#6f8f4e', '#9aa3ad', '#7a3b52', '#e8e2d4', '#2b2e33'];
+  const SHIRTS = ['#c9493b', '#3f6fa3', '#e0b04a', '#5d8a4f', '#e8e2d4', '#8c5aa0', '#2d3138', '#d97845'];
+  const SKIN = ['#f0c9a0', '#c99572', '#8d5a3b', '#e5b48a'];
+  const rnd = (a) => a[Math.floor(Math.random() * a.length)];
+
+  const pane = map.createPane('life');
+  pane.classList.add('leaflet-life-pane');
+  pane.style.zIndex = 450;
+  pane.style.pointerEvents = 'none';
+  const canvas = document.createElement('canvas');
+  pane.appendChild(canvas);
+  const g = canvas.getContext('2d');
+  let agents = [], on = false, raf = 0, last = 0, w = 0, h = 0, dpr = 1, zooming = false;
+
+  const resize = () => {
+    const s = map.getSize(); dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = s.x; h = s.y; canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  };
+  map.on('resize', resize);
+  map.on('zoomstart', () => { zooming = true; canvas.style.visibility = 'hidden'; });
+  map.on('zoomend', () => { zooming = false; canvas.style.visibility = ''; });
+
+  const view = () => {
+    const z = map.getZoom(), k = 2 ** (z - DZ), b = map.getPixelBounds();
+    const pad = 80;
+    return { z, k, x0: (b.min.x - pad) / k, y0: (b.min.y - pad) / k, x1: (b.max.x + pad) / k, y1: (b.max.y + pad) / k };
+  };
+  const visibleWays = (v) => {
+    const seen = new Set(), out = [];
+    for (let cx = Math.floor(v.x0 / CELL); cx <= Math.floor(v.x1 / CELL); cx++)
+      for (let cy = Math.floor(v.y0 / CELL); cy <= Math.floor(v.y1 / CELL); cy++)
+        for (const i of grid.get(cx + ',' + cy) || []) {
+          if (seen.has(i)) continue; seen.add(i);
+          const bx = ways[i].box;
+          if (bx[2] >= v.x0 && bx[0] <= v.x1 && bx[3] >= v.y0 && bx[1] <= v.y1) out.push(i);
+        }
+    return out;
+  };
+  const at = (wy, s) => {
+    const c = wy.cum, n = c.length;
+    let lo = 0, hi = n - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (c[m] <= s) lo = m; else hi = m; }
+    const seg = c[hi] - c[lo] || 1, t = Math.min(Math.max((s - c[lo]) / seg, 0), 1), p = wy.pts;
+    const dx = p[2 * hi] - p[2 * lo], dy = p[2 * hi + 1] - p[2 * lo + 1];
+    return [p[2 * lo] + dx * t, p[2 * lo + 1] + dy * t, dx, dy];
+  };
+  const hiddenAt = (wy, s) => { const sp = wy.hidden; for (let i = 0; i < sp.length; i += 2) if (s >= sp[i] && s <= sp[i + 1]) return true; return false; };
+
+  function spawn(pool, total, fadeIn = true) {
+    let r = Math.random() * total;
+    for (const [i, weight] of pool) {
+      if ((r -= weight) > 0) continue;
+      const wy = ways[i], fam = family(wy.kind);
+      const dir = wy.oneway || Math.random() < 0.5 ? 1 : -1;
+      const a = { way: i, s: Math.random() * wy.len, dir, fam, alpha: fadeIn ? 0 : 1, fade: 1,
+        speed: SPEED[wy.kind] * PPM * (0.8 + Math.random() * 0.4), phase: Math.random() * 10 };
+      if (fam === 'road') { a.color = rnd(CARS); a.len = Math.random() < 0.08 ? 7.5 : 4.4; a.wid = a.len > 5 ? 2.3 : 1.85; a.hgt = a.len > 5 ? 2.6 : 1.45; }
+      else if (fam === 'foot') { a.color = rnd(SHIRTS); a.skin = rnd(SKIN); a.side = (Math.random() - 0.5) * 2.4; }
+      else { a.cars = 2 + (Math.random() < 0.4); }
+      return a;
+    }
+  }
+
+  function advance(a, dt) {
+    let wy = ways[a.way];
+    a.s += a.dir * a.speed * dt;
+    while (a.s < 0 || a.s > wy.len) {
+      const end = a.s > wy.len ? 1 : 0, node = end ? wy.b : wy.a, over = end ? a.s - wy.len : -a.s;
+      const options = (nodes.get(node) || []).filter(([j, e]) => j !== a.way && family(ways[j].kind) === a.fam &&
+        !(ways[j].oneway && e === 1));
+      if (node < 0 || !options.length) { a.fade = -1; a.s = Math.min(Math.max(a.s, 0), wy.len); return; }
+      const [j, e] = options[Math.floor(Math.random() * options.length)];
+      a.way = j; wy = ways[j]; a.dir = e === 0 ? 1 : -1; a.s = e === 0 ? over : wy.len - over;
+      if (a.fam === 'road') a.speed = SPEED[wy.kind] * PPM * (0.8 + Math.random() * 0.4);
+    }
+  }
+
+  // An isometric box: footprint along the travel direction, extruded up, visible faces shaded.
+  function box(cx, cy, fe, fn, L, W, Hh, k, top, side, front) {
+    const re = fn, rn = -fe;
+    const corners = [[L / 2, W / 2], [L / 2, -W / 2], [-L / 2, -W / 2], [-L / 2, W / 2]].map(([a, b]) => [fe * a + re * b, fn * a + rn * b]);
+    const P = (e, n, u) => { const q = proj(e, n, u); return [cx + q[0] * k, cy + q[1] * k]; };
+    const base = corners.map(([e, n]) => P(e, n, 0)), roof = corners.map(([e, n]) => P(e, n, Hh));
+    g.fillStyle = 'rgba(20, 16, 10, .32)';
+    poly(corners.map(([e, n]) => P(e + 0.5, n - 0.5, 0)));
+    for (let i = 0; i < 4; i++) {
+      const [e0, n0] = corners[i], [e1, n1] = corners[(i + 1) % 4];
+      const ne = n1 - n0, nn = -(e1 - e0);  // outward normal (corners run counter-clockwise)
+      if (ne * toward[0] + nn * toward[1] <= 0) continue;
+      g.fillStyle = i === 0 ? front : side;
+      poly([base[i], base[(i + 1) % 4], roof[(i + 1) % 4], roof[i]]);
+    }
+    g.fillStyle = top;
+    poly(roof);
+    return roof;
+  }
+  function poly(p) { g.beginPath(); g.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length; i++) g.lineTo(p[i][0], p[i][1]); g.closePath(); g.fill(); }
+  const shade = (hex, f) => { const n = parseInt(hex.slice(1), 16); return `rgb(${((n >> 16) & 255) * f | 0},${((n >> 8) & 255) * f | 0},${(n & 255) * f | 0})`; };
+
+  function draw(a, v, ox, oy, t) {
+    const wy = ways[a.way];
+    g.globalAlpha = Math.max(0, Math.min(1, a.alpha));
+    if (a.fam === 'rail') {
+      for (let c = 0; c < a.cars; c++) {
+        const s = a.s - a.dir * c * 30 * PPM;
+        if (s < 0 || s > wy.len || hiddenAt(wy, s)) continue;
+        const [x, y, dx, dy] = at(wy, s), [fe0, fn0] = ground(dx * a.dir, dy * a.dir), m = Math.hypot(fe0, fn0) || 1;
+        box(x * v.k - ox, y * v.k - oy, fe0 / m, fn0 / m, 28, 2.65, 3.6, v.k, '#d7d9d6', '#a8abaa', '#b33a32');
+      }
+      return;
+    }
+    if (hiddenAt(wy, a.s)) return;
+    const [x, y, dx, dy] = at(wy, a.s);
+    let [fe, fn] = ground(dx * a.dir, dy * a.dir);
+    const m = Math.hypot(fe, fn) || 1; fe /= m; fn /= m;
+    let cx = x * v.k - ox, cy = y * v.k - oy;
+    if (a.fam === 'road') {
+      const lane = wy.oneway ? 0 : (wy.kind === KIND.motorway ? 5.5 : 1.9);
+      const o = proj(fn * lane, -fe * lane, 0); cx += o[0] * v.k; cy += o[1] * v.k;
+      const roof = box(cx, cy, fe, fn, a.len, a.wid, a.hgt, v.k, a.color, shade(a.color, 0.62), shade(a.color, 0.78));
+      if (v.k >= 0.7 && a.len < 5) {  // windscreen: a dark band across the front third of the roof
+        g.fillStyle = 'rgba(30, 38, 48, .75)';
+        const mid = (p, q, f) => [p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f];
+        poly([roof[0], roof[1], mid(roof[1], roof[2], 0.3), mid(roof[0], roof[3], 0.3)]);
+      }
+    } else {
+      const o = proj(fn * a.side, -fe * a.side, 0); cx += o[0] * v.k; cy += o[1] * v.k;
+      const s = v.k * PPM, step = Math.sin(t * 9 + a.phase) > 0 ? 1 : 0;
+      const px = (x0, y0, ww, hh, c) => { g.fillStyle = c; g.fillRect(cx + x0 * s, cy + y0 * s, ww * s, hh * s); };
+      g.fillStyle = 'rgba(20, 16, 10, .3)';
+      g.beginPath(); g.ellipse(cx, cy, 0.45 * s, 0.22 * s, 0, 0, 7); g.fill();
+      px(-0.25, -0.75, 0.2, 0.75 - step * 0.1, '#3b3a3f');
+      px(0.05, -0.75, 0.2, 0.65 + step * 0.1, '#3b3a3f');
+      px(-0.3, -1.35, 0.6, 0.65, a.color);
+      px(-0.18, -1.7, 0.36, 0.36, a.skin);
+    }
+  }
+
+  function frame(now) {
+    raf = on ? requestAnimationFrame(frame) : 0;
+    const dt = Math.min((now - (last || now)) / 1000, 0.1); last = now;
+    if (zooming) return;
+    const v = view();
+    const l0 = map.containerPointToLayerPoint([0, 0]);
+    L.DomUtil.setPosition(canvas, l0);
+    const origin = map.getPixelOrigin(), ox = origin.x + l0.x, oy = origin.y + l0.y;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    if (v.z < DZ - 3) { agents = []; return; }
+    const showPeople = v.z >= DZ - 1.5;
+    const pool = [];
+    let total = 0;
+    for (const i of visibleWays(v)) {
+      const wy = ways[i];
+      if (wy.kind === KIND.foot && !showPeople) continue;
+      const weight = wy.len * DENSITY[wy.kind] / 1000;
+      pool.push([i, weight]); total += weight;
+    }
+    const target = Math.min(Math.round(total), 900);
+    agents = agents.filter((a) => {
+      if (a.fam === 'foot' && !showPeople) return false;
+      const [x, y] = at(ways[a.way], a.s);
+      const inView = x >= v.x0 && x <= v.x1 && y >= v.y0 && y <= v.y1;
+      return a.alpha > 0 || a.fade > 0 ? inView || a.fade < 0 : false;
+    });
+    const settled = agents.length > target / 2;
+    while (agents.length < target && pool.length) { const a = spawn(pool, total, settled); if (a) agents.push(a); else break; }
+    if (agents.length > target + 20) agents.length = target;
+    for (const a of agents) {
+      advance(a, dt);
+      a.alpha = Math.min(1, a.alpha + a.fade * dt * 2.5);
+      a.y = at(ways[a.way], a.s)[1];
+    }
+    agents = agents.filter((a) => a.alpha > 0 || a.fade > 0);
+    agents.sort((p, q) => p.y - q.y);
+    const t = now / 1000;
+    for (const a of agents) draw(a, v, ox, oy, t);
+    g.globalAlpha = 1;
+  }
+
+  resize();
+  return {
+    enable(v) {
+      on = v; canvas.style.display = v ? '' : 'none';
+      if (v && !raf) { last = 0; raf = requestAnimationFrame(frame); }
+      if (!v) { agents = []; }
+    },
+  };
+}
 </script>
 </body>
 </html>
